@@ -1,7 +1,7 @@
 import os
 from uuid import uuid4
 
-from flask import Blueprint, redirect, url_for, flash, current_app, request
+from flask import Blueprint, redirect, url_for, flash, current_app, request, render_template,jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -11,6 +11,13 @@ from app.forms import BlogPostForm, CommentForm
 from app.models.comment import Comment
 
 blog = Blueprint("blog", __name__)
+
+
+@blog.route("/dashboard/blog/create", methods=["GET"])
+@login_required
+def create_blog_page():
+    form = BlogPostForm()
+    return render_template("blog/create.html", form=form)
 
 
 @blog.route("/dashboard/blog/create", methods=["POST"])
@@ -63,6 +70,21 @@ def create_blog():
 
     return redirect(url_for("main.dashboard"))
 
+@blog.route("/dashboard/blog/generate", methods=["POST"])
+@login_required
+def generate_blog():
+    image = request.files.get("photo")
+
+    if not image:
+        return jsonify({
+            "error": "Please upload an image."
+        }), 400
+
+    return jsonify({
+        "title": "AI Generated Blog Title",
+        "short_description": "This is a sample short description generated for testing.",
+        "description": "This is a sample long description. Later, Gemini will analyze the uploaded image and generate the actual blog content here."
+    })
 
 @blog.route("/blog/<int:post_id>/comment", methods=["POST"])
 def add_comment(post_id):

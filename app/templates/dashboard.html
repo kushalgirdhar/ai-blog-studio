@@ -8,13 +8,13 @@
     <title>Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 
 <body class="dashboard-layout">
 
-    <!-- Dashboard Header -->
     <header class="dashboard-nav">
 
         <h1>Dashboard</h1>
@@ -28,19 +28,33 @@
 
     <main class="dashboard-content">
 
-        <!-- Flash Messages -->
+
+        <!-- FLASH MESSAGES -->
+
         {% with messages = get_flashed_messages(with_categories=true) %}
+
         {% if messages %}
+
         <div class="flash-messages">
+
             {% for category, message in messages %}
-            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+
+            <div class="flash-message flash-{{ category }}">
+                {{ message }}
+            </div>
+
             {% endfor %}
+
         </div>
+
         {% endif %}
+
         {% endwith %}
 
 
-        <!-- Welcome Section -->
+
+        <!-- WELCOME CARD -->
+
         <div class="welcome-card">
 
             <h2>
@@ -55,18 +69,24 @@
 
 
 
-        <!-- My Posts Section -->
-        <section class="data-section" style="margin-bottom: 2rem;">
+        <!-- MY POSTS -->
+
+        <section class="data-section" style="margin-bottom:2rem">
 
             <div class="data-header">
 
-                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="ph ph-files"></i> My Posts
+                <h2 style="display:flex;align-items:center;gap:.5rem">
+                    <i class="ph ph-files"></i>
+                    My Posts
                 </h2>
 
+
                 <button type="button" class="btn-primary" onclick="openCreateBlogModal()"
-                    style="display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-plus-circle"></i> Create Blog
+                    style="display:flex;align-items:center;gap:.25rem">
+
+                    <i class="ph ph-plus-circle"></i>
+                    Create Blog
+
                 </button>
 
             </div>
@@ -80,125 +100,323 @@
 
                 <div class="post-card">
 
+
+                    <!-- POST IMAGE -->
+
                     {% if post.photo %}
+
                     <div class="post-image">
+
                         <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}">
+
                     </div>
+
                     {% else %}
+
                     <div class="post-image placeholder">
-                        <span>No Image Available</span>
+
+                        <span>
+                            No Image Available
+                        </span>
+
                     </div>
+
                     {% endif %}
 
+
+
+                    <!-- POST CONTENT -->
+
                     <div class="post-content">
+
                         <div class="post-title-wrapper">
-                            <h3 class="post-title">{{ post.title }}</h3>
+
+                            <h3 class="post-title">
+                                {{ post.title }}
+                            </h3>
+
                             <span class="visibility-badge badge-{{ post.visibility }}">
                                 {{ post.visibility.replace('_', ' ').title() }}
                             </span>
+
                         </div>
 
+
                         <div class="post-text-content">
+
+
                             {% if post.short_description %}
+
                             <div class="desc-container">
+
                                 <p class="post-desc line-clamp-2" id="short-desc-{{ loop.index }}">
-                                    <strong>Short:</strong> {{ post.short_description }}
+                                    <strong>Short:</strong>
+                                    {{ post.short_description }}
                                 </p>
+
                                 <button class="read-more-btn"
-                                    onclick="toggleDesc(this, 'short-desc-{{ loop.index }}', 2)">more</button>
+                                    onclick="toggleDesc(this,'short-desc-{{ loop.index }}',2)">
+                                    more
+                                </button>
+
                             </div>
+
                             {% endif %}
 
+
+
                             {% if post.description %}
+
                             <div class="desc-container">
+
                                 <p class="post-full-desc line-clamp-3" id="full-desc-{{ loop.index }}">
-                                    <strong>Full:</strong> {{ post.description }}
+                                    <strong>Full:</strong>
+                                    {{ post.description }}
                                 </p>
-                                <button class="read-more-btn"
-                                    onclick="toggleDesc(this, 'full-desc-{{ loop.index }}', 3)">more</button>
+
+                                <button class="read-more-btn" onclick="toggleDesc(this,'full-desc-{{ loop.index }}',3)">
+                                    more
+                                </button>
+
                             </div>
+
                             {% endif %}
+
                         </div>
 
                     </div>
 
-                    <!-- Inline Comments Section -->
-                    <div style="background: #f9fafb; border-top: 1px solid var(--border-color); padding: 1rem 1.25rem;">
-                        <!-- Comments List -->
+
+
+                    <!-- COMMENTS -->
+
+                    <div style="
+                                background:#f9fafb;
+                                border-top:1px solid var(--border-color);
+                                padding:1rem 1.25rem;
+                            ">
+
                         {% if post.comments %}
-                        <div
-                            style="margin-bottom: 1rem; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.5rem;">
+
+                        <div style="
+                                        margin-bottom:1rem;
+                                        max-height:250px;
+                                        overflow-y:auto;
+                                        display:flex;
+                                        flex-direction:column;
+                                        gap:.75rem;
+                                        padding-right:.5rem;
+                                    ">
+
                             {% for comment in post.comments %}
-                            <div class="comment-item-{{ post.id }}"
-                                style="font-size: 0.85rem; background: #ffffff; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color); {% if loop.index > 1 %}display: none;{% endif %}">
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                                    <strong style="color: var(--primary-color);">{% if comment.user %}
+
+                            <div class="comment-item-{{ post.id }}" style="
+                                                font-size:.85rem;
+                                                background:#fff;
+                                                padding:.75rem;
+                                                border-radius:.5rem;
+                                                border:1px solid var(--border-color);
+                                                {% if loop.index > 1 %}
+                                                    display:none;
+                                                {% endif %}
+                                            ">
+
+                                <div style="
+                                                    display:flex;
+                                                    justify-content:space-between;
+                                                    align-items:center;
+                                                    margin-bottom:.25rem;
+                                                ">
+
+                                    <strong style="color:var(--primary-color)">
+
+                                        {% if comment.user %}
+
                                         {{ comment.user.username.title() }}
+
                                         {% else %}
+
                                         Anonymous
-                                        {% endif %}</strong>
-                                    <span style="color: var(--text-secondary); font-size: 0.75rem;">
-                                        {% if comment.created_at and comment.created_at.strftime %}
-                                        {{ comment.created_at.strftime('%b %d, %H:%M') }}
+
                                         {% endif %}
+
+                                    </strong>
+
+
+                                    <span style="
+                                                        color:var(--text-secondary);
+                                                        font-size:.75rem;
+                                                    ">
+
+                                        {% if comment.created_at and comment.created_at.strftime %}
+
+                                        {{ comment.created_at.strftime('%b %d, %H:%M') }}
+
+                                        {% endif %}
+
                                     </span>
+
                                 </div>
-                                <p style="margin: 0; color: var(--text-primary); line-height: 1.4;">{{ comment.content
-                                    }}</p>
+
+
+                                <p style="
+                                                    margin:0;
+                                                    color:var(--text-primary);
+                                                    line-height:1.4;
+                                                ">
+                                    {{ comment.content }}
+                                </p>
+
                             </div>
+
                             {% endfor %}
 
+
+
                             {% if post.comments|length > 1 %}
-                            <div style="text-align: center; margin-top: -0.25rem;">
-                                <button type="button" onclick="toggleComments({{ post.id }}, this)"
-                                    style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem;"
-                                    title="View all {{ post.comments|length }} comments">
+
+                            <div style="
+                                                text-align:center;
+                                                margin-top:-.25rem;
+                                            ">
+
+                                <button type="button" onclick="toggleComments({{ post.id }},this)" style="
+                                                    background:0;
+                                                    border:0;
+                                                    color:var(--text-secondary);
+                                                    cursor:pointer;
+                                                    font-size:1.2rem;
+                                                    display:inline-flex;
+                                                    align-items:center;
+                                                    justify-content:center;
+                                                    padding:.25rem;
+                                                " title="View all {{ post.comments|length }} comments">
+
                                     <i class="ph ph-caret-down"></i>
+
                                 </button>
+
                             </div>
+
                             {% endif %}
+
                         </div>
+
                         {% else %}
-                        <p
-                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
-                            <i class="ph ph-chat-circle-dots" style="font-size: 1.5rem; opacity: 0.5;"></i>
+
+                        <p style="
+                                        font-size:.85rem;
+                                        color:var(--text-secondary);
+                                        margin-bottom:1rem;
+                                        text-align:center;
+                                        display:flex;
+                                        flex-direction:column;
+                                        align-items:center;
+                                        gap:.25rem;
+                                    ">
+
+                            <i class="ph ph-chat-circle-dots" style="font-size:1.5rem;opacity:.5"></i>
+
                             No comments yet.
+
                         </p>
+
                         {% endif %}
 
-                        <!-- Comment Form -->
-                        <form method=POST action="{{ url_for('blog.add_comment', post_id=post.id) }}"
-                            style=display:flex;gap:.5rem;align-items:flex-start>
+
+
+                        <!-- COMMENT FORM -->
+
+                        <form method="POST" action="{{ url_for('blog.add_comment', post_id=post.id) }}" style="
+                                    display:flex;
+                                    gap:.5rem;
+                                    align-items:flex-start;
+                                ">
 
                             <input type="hidden" name="redirect_to" value="dashboard">
 
                             {{ comment_form.hidden_tag() }}
-                            {{ comment_form.content(id="comment-content-dashboard-" ~ post.id, placeholder="Add a
-                            comment...", style="flex-grow: 1; padding: 0.5rem 0.75rem; resize: none; border-radius:
-                            99px; border: 1px solid var(--border-color); font-size: 0.85rem; font-family: inherit;",
-                            rows=1) }}
-                            <button type="submit" class="btn-primary"
-                                style="padding: 0.5rem; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
-                                title="Post">
-                                <i class="ph ph-paper-plane-tilt" style="font-size: 1.1rem; padding-right: 2px;"></i>
+
+                            {{ comment_form.content(
+                            id="comment-content-dashboard-" ~ post.id,
+                            placeholder="Add a comment...",
+                            style="
+                            flex-grow:1;
+                            padding:.5rem .75rem;
+                            resize:none;
+                            border-radius:99px;
+                            border:1px solid var(--border-color);
+                            font-size:.85rem;
+                            font-family:inherit;
+                            ",
+                            rows=1
+                            ) }}
+
+                            <button type="submit" class="btn-primary" style="
+                                        padding:.5rem;
+                                        border-radius:50%;
+                                        width:34px;
+                                        height:34px;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        flex-shrink:0;
+                                    " title="Post">
+
+                                <i class="ph ph-paper-plane-tilt" style="
+                                            font-size:1.1rem;
+                                            padding-right:2px;
+                                        "></i>
+
                             </button>
+
                         </form>
+
                     </div>
 
-                    <div class="post-meta"
-                        style="padding: 1rem 1.25rem; background: var(--surface-color); border-top: 1px solid var(--border-color);">
-                        <span class="post-author" style="display: flex; align-items: center; gap: 0.25rem;"><i
-                                class="ph ph-user"></i> {{ post.created_by.username.title() }}</span>
-                        <span class="post-date" title="{{ post.created_at }}"
-                            style="display: flex; align-items: center; gap: 0.25rem;">
-                            <i class="ph ph-calendar-blank"></i>
-                            {% if post.created_at and post.created_at.strftime %}
-                            {{ post.created_at.strftime('%b %d, %Y') }}
-                            {% else %}
-                            {{ post.created_at|string|truncate(10, True, '') }}
-                            {% endif %}
+
+
+                    <!-- POST META -->
+
+                    <div class="post-meta" style="
+                                padding:1rem 1.25rem;
+                                background:var(--surface-color);
+                                border-top:1px solid var(--border-color);
+                            ">
+
+                        <span class="post-author" style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:.25rem;
+                                ">
+
+                            <i class="ph ph-user"></i>
+
+                            {{ post.created_by.username.title() }}
+
                         </span>
+
+
+                        <span class="post-date" title="{{ post.created_at }}" style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:.25rem;
+                                ">
+
+                            <i class="ph ph-calendar-blank"></i>
+
+                            {% if post.created_at and post.created_at.strftime %}
+
+                            {{ post.created_at.strftime('%b %d, %Y') }}
+
+                            {% else %}
+
+                            {{ post.created_at|string|truncate(10, True, '') }}
+
+                            {% endif %}
+
+                        </span>
+
                     </div>
 
                 </div>
@@ -207,18 +425,43 @@
 
             </div>
 
+
             {% else %}
 
-            <div class="empty-state"
-                style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem 2rem;">
-                <i class="ph ph-note-blank" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                <p style="margin: 0;">
+
+            <!-- EMPTY POSTS -->
+
+            <div class="empty-state" style="
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    gap:1rem;
+                    padding:4rem 2rem;
+                ">
+
+                <i class="ph ph-note-blank" style="
+                        font-size:3rem;
+                        color:var(--text-secondary);
+                        opacity:.5;
+                    "></i>
+
+                <p style="margin:0">
                     You haven't created any blog posts yet.
                 </p>
-                <button type="button" class="btn-primary" onclick="openCreateBlogModal()"
-                    style="display: flex; align-items: center; gap: 0.25rem;">
-                    <i class="ph ph-plus-circle"></i> Create Blog
+
+
+                <button type="button" class="btn-primary" onclick="openCreateBlogModal()" style="
+                        display:flex;
+                        align-items:center;
+                        gap:.25rem;
+                    ">
+
+                    <i class="ph ph-plus-circle"></i>
+
+                    Create Blog
+
                 </button>
+
             </div>
 
             {% endif %}
@@ -227,63 +470,150 @@
 
 
 
-        <!-- Create Blog Popup -->
-        <div id="createBlogModal" class="modal-overlay" style="display: none;">
+        <!-- CREATE BLOG MODAL -->
+
+        <div id="createBlogModal" class="modal-overlay" style="display:none">
 
             <div class="modal-content">
 
+
+                <!-- MODAL HEADER -->
+
                 <div class="modal-header">
+
                     <h2>
                         Create Blog Post
                     </h2>
+
                     <button type="button" class="close-btn" onclick="closeCreateBlogModal()">
                         &times;
                     </button>
+
                 </div>
 
 
-                <!-- Create Blog Form -->
-                <form method="POST" action="{{ url_for('blog.create_blog') }}" enctype="multipart/form-data">
 
-                    {{ blog_form.hidden_tag() }}
+                <!-- STEP 1: UPLOAD IMAGE -->
 
+                <div id="blogUploadStep">
 
-                    <!-- Title -->
                     <div class="form-group">
-                        {{ blog_form.title.label }}
-                        {{ blog_form.title() }}
+
+                        <label for="blogImage">
+                            Upload Blog Image
+                        </label>
+
+                        <input type="file" id="blogImage" name="photo" accept=".jpg,.jpeg,.png,.webp">
+
                     </div>
 
 
-                    <!-- Short Description -->
+                    <button type="button" class="btn-primary" onclick="generateBlogDraft()">
+                        Generate Blog
+                    </button>
+
+                </div>
+
+
+
+                <!-- STEP 2: REVIEW GENERATED BLOG -->
+
+                <div id="blogReviewStep" style="display:none">
+
+
+                    <!-- IMAGE PREVIEW -->
+
                     <div class="form-group">
-                        {{ blog_form.short_description.label }}
-                        {{ blog_form.short_description() }}
+
+                        <img id="blogImagePreview" src="" alt="Uploaded blog image" style="
+                            width:100%;
+                            max-height:250px;
+                            object-fit:contain;
+                            border-radius:8px;
+                            margin-bottom:1rem;
+                        ">
+
                     </div>
 
-                    <!-- Description -->
+
+
+                    <!-- TITLE -->
+
                     <div class="form-group">
-                        {{ blog_form.description.label }}
-                        {{ blog_form.description() }}
-                    </div>
-                    <!-- Removed buggy comment form -->
-                    <!-- Visibility -->
-                    <div>
-                        {{ blog_form.visibility.label }}
-                        {{ blog_form.visibility() }}
+
+                        <label for="generatedTitle">
+                            Title
+                        </label>
+
+                        <input type="text" id="generatedTitle" name="title">
+
                     </div>
 
-                    <br>
-                    <!-- Photo -->
+
+
+                    <!-- SHORT DESCRIPTION -->
+
                     <div class="form-group">
-                        {{ blog_form.photo.label }}
-                        {{ blog_form.photo() }}
+
+                        <label for="generatedShortDescription">
+                            Short Description
+                        </label>
+
+                        <textarea id="generatedShortDescription" name="short_description" rows="3"></textarea>
+
                     </div>
 
-                    <!-- Submit -->
-                    {{ blog_form.submit(class_="btn-primary blog-submit") }}
 
-                </form>
+
+                    <!-- LONG DESCRIPTION -->
+
+                    <div class="form-group">
+
+                        <label for="generatedDescription">
+                            Description
+                        </label>
+
+                        <textarea id="generatedDescription" name="description" rows="8"></textarea>
+
+                    </div>
+
+
+
+                    <!-- VISIBILITY -->
+
+                    <div class="form-group">
+
+                        <label for="generatedVisibility">
+                            Visibility
+                        </label>
+
+                        <select id="generatedVisibility" name="visibility">
+
+                            <option value="private">
+                                Private
+                            </option>
+
+                            <option value="public">
+                                Public
+                            </option>
+
+                            <option value="login_only">
+                                Login Only
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- POST BLOG -->
+
+                    <button type="button" class="btn-primary" onclick="publishBlog()">
+                        Post Blog
+                    </button>
+
+                </div>
 
             </div>
 
@@ -291,14 +621,26 @@
 
 
 
-        <!-- Login History Section -->
+        <!-- LOGIN HISTORY -->
+
         <section class="data-section">
 
             <div class="data-header">
-                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="ph ph-clock-counter-clockwise"></i> Login History
+
+                <h2 style="
+                    display:flex;
+                    align-items:center;
+                    gap:.5rem;
+                ">
+
+                    <i class="ph ph-clock-counter-clockwise"></i>
+
+                    Login History
+
                 </h2>
+
             </div>
+
 
 
             {% if login_history %}
@@ -352,12 +694,12 @@
 
 
             <div style="
-                        padding: 1rem 1.5rem;
-                        background: #f9fafb;
-                        border-top: 1px solid var(--border-color);
-                        font-size: 0.875rem;
-                        color: var(--text-secondary);
-                    ">
+                    padding:1rem 1.5rem;
+                    background:#f9fafb;
+                    border-top:1px solid var(--border-color);
+                    font-size:.875rem;
+                    color:var(--text-secondary);
+                ">
 
                 <strong>
                     Total Logins:
@@ -370,94 +712,526 @@
 
             {% else %}
 
-            <div class="empty-state"
-                style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem 2rem;">
-                <i class="ph ph-clock-slash" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                <p style="margin: 0;">
+
+            <div class="empty-state" style="
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    gap:1rem;
+                    padding:4rem 2rem;
+                ">
+
+                <i class="ph ph-clock-slash" style="
+                        font-size:3rem;
+                        color:var(--text-secondary);
+                        opacity:.5;
+                    "></i>
+
+                <p style="margin:0">
                     No login history found.
                 </p>
+
             </div>
 
             {% endif %}
 
         </section>
 
-
     </main>
 
 
 
-    <!-- Create Blog Popup JavaScript -->
+    <!-- ========================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================= -->
+
     <script>
 
+
+        /* =========================
+           CREATE BLOG MODAL
+        ========================= */
+
+
         function openCreateBlogModal() {
+
             document.getElementById(
                 "createBlogModal"
             ).style.display = "flex";
+
         }
 
 
         function closeCreateBlogModal() {
+
             document.getElementById(
                 "createBlogModal"
             ).style.display = "none";
+
         }
 
-    </script
+
+        /* =========================
+           GENERATE BLOG DRAFT
+        ========================= */
 
 
-    <!-- Read More Logic -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const clampElements = document.querySelectorAll('.line-clamp-2, .line-clamp-3');
-            clampElements.forEach(el => {
-                if (el.scrollHeight > el.clientHeight) {
-                    const btn = el.nextElementSibling;
-                    if (btn && btn.classList.contains('read-more-btn')) {
-                        btn.style.display = 'inline-block';
-                    }
-                }
-            });
-        });
+        async function generateBlogDraft() {
 
-        function toggleDesc(btn, targetId, lines) {
-            const el = document.getElementById(targetId);
-            const clampClass = 'line-clamp-' + lines;
+            const imageInput =
+                document.getElementById("blogImage");
 
-            if (el.classList.contains(clampClass)) {
-                el.classList.remove(clampClass);
-                btn.innerText = 'less';
-            } else {
-                el.classList.add(clampClass);
-                btn.innerText = 'more';
+
+            if (!imageInput.files.length) {
+
+                alert(
+                    "Please select an image first."
+                );
+
+                return;
             }
+
+
+            const image =
+                imageInput.files[0];
+
+
+            /* Image preview */
+
+            const imagePreview =
+                document.getElementById(
+                    "blogImagePreview"
+                );
+
+
+            imagePreview.src =
+                URL.createObjectURL(image);
+
+
+            /* Form data */
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "photo",
+                image
+            );
+
+
+            /* CSRF token */
+
+            const csrfToken =
+                document.querySelector(
+                    'input[name="csrf_token"]'
+                ).value;
+
+
+            formData.append(
+                "csrf_token",
+                csrfToken
+            );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "{{ url_for('blog.generate_blog') }}",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    alert(
+                        data.error ||
+                        "Unable to generate blog."
+                    );
+
+                    return;
+                }
+
+
+                /* Hide upload step */
+
+                document.getElementById(
+                    "blogUploadStep"
+                ).style.display = "none";
+
+
+                /* Show review step */
+
+                document.getElementById(
+                    "blogReviewStep"
+                ).style.display = "block";
+
+
+                /* Fill generated content */
+
+                document.getElementById(
+                    "generatedTitle"
+                ).value =
+                    data.title || "";
+
+
+                document.getElementById(
+                    "generatedShortDescription"
+                ).value =
+                    data.short_description || "";
+
+
+                document.getElementById(
+                    "generatedDescription"
+                ).value =
+                    data.description || "";
+
+            }
+
+
+            catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Something went wrong while generating the blog."
+                );
+
+            }
+
         }
 
-        function toggleComments(postId, btn) {
-            const comments = document.querySelectorAll('.comment-item-' + postId);
+
+        /* =========================
+           PUBLISH BLOG
+        ========================= */
+
+
+        async function publishBlog() {
+
+            const imageInput =
+                document.getElementById(
+                    "blogImage"
+                );
+
+
+            if (!imageInput.files.length) {
+
+                alert(
+                    "Please select an image."
+                );
+
+                return;
+            }
+
+
+            const formData =
+                new FormData();
+
+
+            /* Image */
+
+            formData.append(
+                "photo",
+                imageInput.files[0]
+            );
+
+
+            /* Title */
+
+            formData.append(
+                "title",
+                document.getElementById(
+                    "generatedTitle"
+                ).value
+            );
+
+
+            /* Short description */
+
+            formData.append(
+                "short_description",
+                document.getElementById(
+                    "generatedShortDescription"
+                ).value
+            );
+
+
+            /* Long description */
+
+            formData.append(
+                "description",
+                document.getElementById(
+                    "generatedDescription"
+                ).value
+            );
+
+
+            /* Visibility */
+
+            formData.append(
+                "visibility",
+                document.getElementById(
+                    "generatedVisibility"
+                ).value
+            );
+
+
+            /* CSRF token */
+
+            const csrfToken =
+                document.querySelector(
+                    'input[name="csrf_token"]'
+                ).value;
+
+
+            formData.append(
+                "csrf_token",
+                csrfToken
+            );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "{{ url_for('blog.create_blog') }}",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                /* Flask redirected */
+
+                if (response.redirected) {
+
+                    window.location.href =
+                        response.url;
+
+                    return;
+                }
+
+
+                if (!response.ok) {
+
+                    alert(
+                        "Unable to publish the blog."
+                    );
+
+                    return;
+                }
+
+
+                window.location.reload();
+
+            }
+
+
+            catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Something went wrong while publishing the blog."
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           DESCRIPTION CLAMP
+        ========================= */
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const clampElements =
+                    document.querySelectorAll(
+                        ".line-clamp-2, .line-clamp-3"
+                    );
+
+
+                clampElements.forEach(
+                    function (el) {
+
+                        if (
+                            el.scrollHeight >
+                            el.clientHeight
+                        ) {
+
+                            const btn =
+                                el.nextElementSibling;
+
+
+                            if (
+                                btn &&
+                                btn.classList.contains(
+                                    "read-more-btn"
+                                )
+                            ) {
+
+                                btn.style.display =
+                                    "inline-block";
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================
+           TOGGLE DESCRIPTION
+        ========================= */
+
+
+        function toggleDesc(
+            btn,
+            targetId,
+            lines
+        ) {
+
+            const el =
+                document.getElementById(
+                    targetId
+                );
+
+
+            const clampClass =
+                "line-clamp-" + lines;
+
+
+            if (
+                el.classList.contains(
+                    clampClass
+                )
+            ) {
+
+                el.classList.remove(
+                    clampClass
+                );
+
+                btn.innerText = "less";
+
+            }
+
+            else {
+
+                el.classList.add(
+                    clampClass
+                );
+
+                btn.innerText = "more";
+
+            }
+
+        }
+
+
+        /* =========================
+           TOGGLE COMMENTS
+        ========================= */
+
+
+        function toggleComments(
+            postId,
+            btn
+        ) {
+
+            const comments =
+                document.querySelectorAll(
+                    ".comment-item-" + postId
+                );
+
+
             let isExpanded = false;
-            comments.forEach((comment, index) => {
-                if (index > 0) {
-                    if (comment.style.display === 'none' || !comment.style.display) {
-                        comment.style.display = 'block';
-                        isExpanded = true;
-                    } else {
-                        comment.style.display = 'none';
-                        isExpanded = false;
-                    }
-                }
-            });
 
-            const icon = btn.querySelector('i');
+
+            comments.forEach(
+                function (
+                    comment,
+                    index
+                ) {
+
+                    if (index > 0) {
+
+                        if (
+                            comment.style.display === "none" ||
+                            !comment.style.display
+                        ) {
+
+                            comment.style.display =
+                                "block";
+
+                            isExpanded = true;
+
+                        }
+
+                        else {
+
+                            comment.style.display =
+                                "none";
+
+                            isExpanded = false;
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            const icon =
+                btn.querySelector("i");
+
+
             if (isExpanded) {
-                icon.classList.remove('ph-caret-down');
-                icon.classList.add('ph-caret-up');
-            } else {
-                icon.classList.remove('ph-caret-up');
-                icon.classList.add('ph-caret-down');
+
+                icon.classList.remove(
+                    "ph-caret-down"
+                );
+
+                icon.classList.add(
+                    "ph-caret-up"
+                );
+
             }
+
+            else {
+
+                icon.classList.remove(
+                    "ph-caret-up"
+                );
+
+                icon.classList.add(
+                    "ph-caret-down"
+                );
+
+            }
+
         }
+
     </script>
+
 </body>
 
 </html>
