@@ -1,10 +1,20 @@
 import os
 from uuid import uuid4
 
-from flask import Blueprint, redirect, url_for, flash, current_app, request, render_template,jsonify
+from flask import (
+    Blueprint,
+    redirect,
+    url_for,
+    flash,
+    current_app,
+    request,
+    render_template,
+    jsonify,
+)
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-
+from app.services.ai_service import generate_blog_from_image
+import tempfile
 from app.extensions import db
 from app.models.blog import BlogPost
 from app.forms import BlogPostForm, CommentForm
@@ -70,21 +80,81 @@ def create_blog():
 
     return redirect(url_for("main.dashboard"))
 
+
 @blog.route("/dashboard/blog/generate", methods=["POST"])
 @login_required
 def generate_blog():
     image = request.files.get("photo")
 
     if not image:
-        return jsonify({
-            "error": "Please upload an image."
-        }), 400
+        return jsonify({"error": "Please upload an image."}), 400
 
-    return jsonify({
-        "title": "AI Generated Blog Title",
-        "short_description": "This is a sample short description generated for testing.",
-        "description": "This is a sample long description. Later, Gemini will analyze the uploaded image and generate the actual blog content here."
-    })
+    temp_path = None
+
+    try:
+        # Create a temporary file for AI processing
+        suffix = os.path.splitext(secure_filename(image.filename))[1].lower()
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            image.save(temp_file.name)
+            temp_path = temp_file.name
+
+        # Generate blog using AI
+        blog_data = generate_blog_from_image(temp_path)
+
+        return jsonify(
+            {
+                "title": blog_data.get("title", ""),
+                "short_description": blog_data.get("short_description", ""),
+                "description": blog_data.get("description", ""),
+            }
+        )
+
+    except Exception:
+        current_app.logger.exception("AI blog generation failed")
+
+        return jsonify({"error": "Unable to generate blog at this time."}), 500
+
+    finally:
+        # Delete temporary image after AI processing
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+    image = request.files.get("photo")
+
+    if not image:
+        return jsonify({"error": "Please upload an image."}), 400
+
+    try:
+        # Temporarily save the uploaded image
+        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "blog")
+
+        os.makedirs(upload_folder, exist_ok=True)
+
+        original_filename = secure_filename(image.filename)
+        extension = os.path.splitext(original_filename)[1].lower()
+
+        unique_filename = f"{uuid4().hex}{extension}"
+
+        image_path = os.path.join(upload_folder, unique_filename)
+
+        image.save(image_path)
+
+        # Generate blog using AI
+        blog_data = generate_blog_from_image(image_path)
+
+        return jsonify(
+            {
+                "title": blog_data.get("title", ""),
+                "short_description": blog_data.get("short_description", ""),
+                "description": blog_data.get("description", ""),
+            }
+        )
+
+    except Exception as e:
+        current_app.logger.exception("AI blog generation failed")
+
+        return jsonify({"error": "Unable to generate blog at this time."}), 500
+
 
 @blog.route("/blog/<int:post_id>/comment", methods=["POST"])
 def add_comment(post_id):
