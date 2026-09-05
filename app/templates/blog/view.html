@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=7">
+</head>
+
+<body class="dashboard-layout">
+
+    <header class="dashboard-nav">
+        <h1>Blog Post</h1>
+        <div>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.dashboard') }}" class="logout-btn" style="margin-right: 0.5rem;">Dashboard</a>
+            {% endif %}
+            <a href="{{ url_for('main.home') }}" class="logout-btn">Home</a>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <section class="data-section" style="margin-bottom: 2rem;">
+            <div class="data-header">
+                <h2 style="margin: 0;">{{ post.title }}</h2>
+                <span class="visibility-badge badge-{{ post.visibility }}">
+                    {{ post.visibility.replace('_', ' ').title() }}
+                </span>
+            </div>
+
+            <div style="padding: 2rem;">
+                <div
+                    style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <div>
+                        <strong style="color: var(--text-primary);">Author:</strong> <span
+                            style="color: var(--text-secondary);">{{ post.created_by.username.title() }}</span>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                        {% if post.created_at and post.created_at.strftime %}
+                        {{ post.created_at.strftime('%B %d, %Y') }}
+                        {% else %}
+                        {{ post.created_at|string|truncate(10, True, '') }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if post.photo %}
+                <div
+                    style="text-align: center; margin-bottom: 2rem; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px dashed var(--border-color);">
+                    <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}"
+                        style="max-width: 100%; max-height: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                </div>
+                {% endif %}
+
+                {% if post.short_description %}
+                <div
+                    style="margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 500; color: var(--primary-color); line-height: 1.5;">
+                    {{ post.short_description }}
+                </div>
+                {% endif %}
+
+                <div style="line-height: 1.8; color: var(--text-primary); font-size: 1rem;">
+                    {{ post.description }}
+                </div>
+            </div>
+        </section>
+
+        <section class="data-section" style="margin-bottom: 2rem;">
+            <div class="data-header">
+                <h2>Comments</h2>
+            </div>
+
+            <div style="padding: 2rem; background: #f9fafb; border-bottom: 1px solid var(--border-color);">
+                <form method="POST" action="{{ url_for('blog.add_comment', post_id=post.id) }}">
+                    {{ comment_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ comment_form.content.label(style="font-weight: 600; color: var(--text-primary);") }}
+                        {{ comment_form.content(rows=4, placeholder="Share your thoughts...", style="margin-top:
+                        0.5rem;") }}
+                    </div>
+                    <div style="text-align: right;">
+                        {{ comment_form.submit(class_="btn-primary", style="width: auto; padding-left: 2rem;
+                        padding-right: 2rem;") }}
+                    </div>
+                </form>
+            </div>
+
+            <div style="padding: 2rem;">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.125rem; color: var(--text-primary); font-weight: 600;">
+                    All Comments ({{ post.comments|length if post.comments else 0 }})
+                </h3>
+
+                {% if post.comments %}
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    {% for comment in post.comments %}
+                    <div
+                        style="background: #ffffff; padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);">
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-items: center;">
+                            <strong style="color: var(--primary-color); font-size: 0.95rem;">{% if comment.user %}
+                                {{ comment.user.username.title() }}
+                                {% else %}
+                                Anonymous
+                                {% endif %}</strong>
+                            <small style="color: var(--text-secondary); font-size: 0.8rem;">
+                                {% if comment.created_at and comment.created_at.strftime %}
+                                {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                {{ comment.created_at|string|truncate(16, True, '') }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <p style="margin: 0; line-height: 1.6; color: var(--text-primary); font-size: 0.95rem;">
+                            {{ comment.content }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state"
+                    style="padding: 2rem 1rem; border: 1px dashed var(--border-color); border-radius: 0.5rem;">
+                    <p>No comments yet. Be the first to share your thoughts!</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </main>
+</body>
+
+</html>

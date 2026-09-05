@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="dashboard-layout">
+
+    <!-- Dashboard Header -->
+    <header class="dashboard-nav">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="{{ url_for('main.dashboard') }}" style="color: var(--text-secondary); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #f3f4f6; text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.background='#e5e7eb'; this.style.color='var(--text-primary)'" onmouseout="this.style.background='#f3f4f6'; this.style.color='var(--text-secondary)'" title="Back to Dashboard">
+                <i class="ph ph-arrow-left" style="font-size: 1.25rem;"></i>
+            </a>
+            <h1>Profile</h1>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+            Logout
+        </a>
+    </header>
+
+    <main class="dashboard-content">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <section class="data-section" style="max-width: 500px; margin: 0 auto;">
+            <div class="data-header">
+                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="ph ph-user-circle"></i> Profile Settings
+                </h2>
+            </div>
+            
+            <div style="padding: 2rem;">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        {{ form.username.label }}
+                        {{ form.username() }}
+                        {% for error in form.username.errors %}
+                            <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.email.label }}
+                        {{ form.email() }}
+                        {% for error in form.email.errors %}
+                            <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.password.label }}
+                        {{ form.password(placeholder="Enter a new password") }}
+                        {% for error in form.password.errors %}
+                            <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    {{ form.submit(class_="btn-primary blog-submit") }}
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

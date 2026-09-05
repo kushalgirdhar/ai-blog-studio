@@ -1,0 +1,49 @@
+# Virtual environment
+myenv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Flask
+instance/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded files
+app/static/uploads/
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Local temporary files
+tmp/
+temp/

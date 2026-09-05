@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Home - Public Blog Posts</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+
+<body class="dashboard-layout">
+
+    <!-- Header -->
+    <header class="dashboard-nav">
+
+        <h1>Public Blog Posts</h1>
+
+        <div>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.dashboard') }}" class="logout-btn" style="margin-right: 0.5rem;">
+                Dashboard
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                Logout
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="logout-btn" style="margin-right: 0.5rem;">
+                Login
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="logout-btn">
+                Register
+            </a>
+            {% endif %}
+        </div>
+
+    </header>
+
+
+    <main class="dashboard-content">
+
+        <!-- Public Posts Section -->
+        <section class="data-section" style="margin-bottom: 2rem;">
+
+            <div class="data-header">
+                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="ph ph-newspaper"></i> Latest Posts
+                </h2>
+            </div>
+
+
+            {% if public_posts %}
+
+            <div class="posts-grid">
+
+                {% for post in public_posts %}
+
+                <div class="post-card">
+
+                    {% if post.photo %}
+                    <div class="post-image">
+                        <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}">
+                    </div>
+                    {% else %}
+                    <div class="post-image placeholder">
+                        <span>No Image Available</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="post-content">
+                        <div class="post-title-wrapper">
+                            <h3 class="post-title">{{ post.title }}</h3>
+                            <span class="visibility-badge badge-{{ post.visibility }}">
+                                {{ post.visibility.replace('_', ' ').title() }}
+                            </span>
+                        </div>
+
+                        <div class="post-text-content">
+                            {% if post.short_description %}
+                            <div class="desc-container">
+                                <p class="post-desc line-clamp-2" id="short-desc-{{ loop.index }}">
+                                    <strong>Short:</strong> {{ post.short_description }}
+                                </p>
+                                <button class="read-more-btn"
+                                    onclick="toggleDesc(this, 'short-desc-{{ loop.index }}', 2)">more</button>
+                            </div>
+                            {% endif %}
+
+                            {% if post.description %}
+                            <div class="desc-container">
+                                <p class="post-full-desc line-clamp-3" id="full-desc-{{ loop.index }}">
+                                    <strong>Full:</strong> {{ post.description }}
+                                </p>
+                                <button class="read-more-btn"
+                                    onclick="toggleDesc(this, 'full-desc-{{ loop.index }}', 3)">more</button>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <!-- Inline Comments Section -->
+                    <div style="background: #f9fafb; border-top: 1px solid var(--border-color); padding: 1rem 1.25rem;">
+                        <!-- Comments List -->
+                        {% if post.comments %}
+                        <div
+                            style="margin-bottom: 1rem; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.5rem;">
+                            {% for comment in post.comments %}
+                            <div class="comment-item-{{ post.id }}"
+                                style="font-size: 0.85rem; background: #ffffff; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color); {% if loop.index > 1 %}display: none;{% endif %}">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                    <strong style="color: var(--primary-color);">{% if comment.user %}
+                                        {{ comment.user.username.title() }}
+                                        {% else %}
+                                        Anonymous
+                                        {% endif %}</strong>
+                                    <span style="color: var(--text-secondary); font-size: 0.75rem;">
+                                        {% if comment.created_at and comment.created_at.strftime %}
+                                        {{ comment.created_at.strftime('%b %d, %H:%M') }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <p style="margin: 0; color: var(--text-primary); line-height: 1.4;">{{ comment.content
+                                    }}</p>
+                            </div>
+                            {% endfor %}
+
+                            {% if post.comments|length > 1 %}
+                            <div style="text-align: center; margin-top: -0.25rem;">
+                                <button type="button" onclick="toggleComments({{ post.id }}, this)"
+                                    style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem;"
+                                    title="View all {{ post.comments|length }} comments">
+                                    <i class="ph ph-caret-down"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <p
+                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                            <i class="ph ph-chat-circle-dots" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                            No comments yet.
+                        </p>
+                        {% endif %}
+
+                        <!-- Comment Form -->
+                        <form method=POST action="{{ url_for('blog.add_comment', post_id=post.id) }}"
+                            style=display:flex;gap:.5rem;align-items:flex-start>
+                            <input type="hidden" name="redirect_to" value="home">
+                            {{ comment_form.hidden_tag() }}
+                            {{ comment_form.content(id="comment-content-home-" ~ post.id, placeholder="Add a
+                            comment...", style="flex-grow: 1; padding: 0.5rem 0.75rem; resize: none; border-radius:
+                            99px; border: 1px solid var(--border-color); font-size: 0.85rem; font-family: inherit;",
+                            rows=1) }}
+                            <button type="submit" class="btn-primary"
+                                style="padding: 0.5rem; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
+                                title="Post">
+                                <i class="ph ph-paper-plane-tilt" style="font-size: 1.1rem; padding-right: 2px;"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="post-meta"
+                        style="padding: 1rem 1.25rem; background: var(--surface-color); border-top: 1px solid var(--border-color);">
+                        <span class="post-author" style="display: flex; align-items: center; gap: 0.25rem;"><i
+                                class="ph ph-user"></i> {{ post.created_by.username.title() }}</span>
+                        <span class="post-date" title="{{ post.created_at }}"
+                            style="display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="ph ph-calendar-blank"></i>
+                            {% if post.created_at and post.created_at.strftime %}
+                            {{ post.created_at.strftime('%b %d, %Y') }}
+                            {% else %}
+                            {{ post.created_at|string|truncate(10, True, '') }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% else %}
+
+            <div class="empty-state"
+                style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 4rem 2rem;">
+                <i class="ph ph-newspaper-clipping"
+                    style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                <p style="margin: 0;">
+                    No public blog posts available.
+                </p>
+            </div>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+    <!-- Read More Logic -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const clampElements = document.querySelectorAll('.line-clamp-2, .line-clamp-3');
+            clampElements.forEach(el => {
+                if (el.scrollHeight > el.clientHeight) {
+                    const btn = el.nextElementSibling;
+                    if (btn && btn.classList.contains('read-more-btn')) {
+                        btn.style.display = 'inline-block';
+                    }
+                }
+            });
+        });
+
+        function toggleDesc(btn, targetId, lines) {
+            const el = document.getElementById(targetId);
+            const clampClass = 'line-clamp-' + lines;
+
+            if (el.classList.contains(clampClass)) {
+                el.classList.remove(clampClass);
+                btn.innerText = 'less';
+            } else {
+                el.classList.add(clampClass);
+                btn.innerText = 'more';
+            }
+        }
+
+        function toggleComments(postId, btn) {
+            const comments = document.querySelectorAll('.comment-item-' + postId);
+            let isExpanded = false;
+            comments.forEach((comment, index) => {
+                if (index > 0) {
+                    if (comment.style.display === 'none' || !comment.style.display) {
+                        comment.style.display = 'block';
+                        isExpanded = true;
+                    } else {
+                        comment.style.display = 'none';
+                        isExpanded = false;
+                    }
+                }
+            });
+
+            const icon = btn.querySelector('i');
+            if (isExpanded) {
+                icon.classList.remove('ph-caret-down');
+                icon.classList.add('ph-caret-up');
+            } else {
+                icon.classList.remove('ph-caret-up');
+                icon.classList.add('ph-caret-down');
+            }
+        }
+    </script>
+</body>
+
+</html>

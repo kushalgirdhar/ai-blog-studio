@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="login-page-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Create Account</h1>
+                <p class="subtitle">Please enter your details to sign up.</p>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Registration Form -->
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.username.label }}
+                    {{ form.username() }}
+                    {% for error in form.username.errors %}
+                        <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.email.label }}
+                    {{ form.email() }}
+                    {% for error in form.email.errors %}
+                        <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password() }}
+                    {% for error in form.password.errors %}
+                        <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.confirm_password.label }}
+                    {{ form.confirm_password() }}
+                    {% for error in form.confirm_password.errors %}
+                        <div style="color: var(--error-color); font-size: 0.75rem; margin-top: 0.25rem;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit() }}
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Login</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
