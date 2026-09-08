@@ -332,8 +332,9 @@ tbody tr:hover {
 
 .post-image {
     width: 100%;
-    height: 180px;
-    background: transparent;
+    height: 200px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border-color);
     overflow: hidden;
     position: relative;
     display: flex;
@@ -344,8 +345,16 @@ tbody tr:hover {
 .post-image img {
     max-width: 100%;
     max-height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+    object-position: center;
     display: block;
+    background-color: #f8fafc;
+}
+
+.post-image img ~ img {
+    display: none !important;
 }
 
 .post-image.placeholder {

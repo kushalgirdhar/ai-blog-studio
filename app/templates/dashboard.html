@@ -8,6 +8,8 @@
     <title>Dashboard</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=10">
 
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -108,6 +110,7 @@
                     <div class="post-image">
 
                         <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}">
+                        <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}" onerror="this.onerror=null; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<span>No Image Available</span>';">
 
                     </div>
 

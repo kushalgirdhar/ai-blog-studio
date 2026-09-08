@@ -7,7 +7,38 @@
 
     <title>Home - Public Blog Posts</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=9">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=11">
+
+    <style>
+        .post-image {
+            width: 100% !important;
+            height: 220px !important;
+            background: #f8fafc !important;
+            border-bottom: 1px solid var(--border-color, #e2e8f0) !important;
+            overflow: hidden !important;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .post-image img {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            object-position: center !important;
+            display: block !important;
+            background-color: #f8fafc !important;
+        }
+
+        .post-image img ~ img {
+            display: none !important;
+        }
+    </style>
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
@@ -62,7 +93,7 @@
 
                     {% if post.photo %}
                     <div class="post-image">
-                        <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}">
+                        <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}" onerror="this.onerror=null; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<span>No Image Available</span>';">
                     </div>
                     {% else %}
                     <div class="post-image placeholder">
