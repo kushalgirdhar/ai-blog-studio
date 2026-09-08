@@ -163,6 +163,11 @@
                                 <span class="visibility-badge badge-{{ post.visibility }}">
                                     {{ post.visibility.replace('_', ' ').title() }}
                                 </span>
+                                {% if current_user.is_authenticated and post.created_by_id == current_user.id %}
+                                <a href="{{ url_for('blog.edit_blog', post_id=post.id, redirect_to='home') }}" class="edit-post-btn" title="Edit this post">
+                                    <i class="ph ph-pencil-simple"></i> Edit
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
 

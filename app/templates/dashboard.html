@@ -204,6 +204,11 @@
                                 <span class="visibility-badge badge-{{ post.visibility }}">
                                     {{ post.visibility.replace('_', ' ').title() }}
                                 </span>
+                                {% if current_user.is_authenticated and post.created_by_id == current_user.id %}
+                                <a href="{{ url_for('blog.edit_blog', post_id=post.id, redirect_to='dashboard') }}" class="edit-post-btn" title="Edit this post">
+                                    <i class="ph ph-pencil-simple"></i> Edit
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -389,7 +394,12 @@
                             <strong style="font-size:0.775rem; color:#991b1b; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
                                 🔴 Reference Plagiarism Matches (Red Highlight):
                             </strong>
-                            <div id="plagiarismMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
+                            <div id="dashboardPlagPillsContainer" style="max-height:78px; overflow:hidden; transition:max-height 0.25s ease;">
+                                <div id="plagiarismMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
+                            </div>
+                            <button type="button" class="read-more-btn" id="toggleDashboardPlagPillsBtn" onclick="toggleDashboardPills('dashboardPlagPillsContainer', this)" style="display:none; margin-top:4px;">
+                                more
+                            </button>
                         </div>
 
                         <!-- Matched Copyright / Duplication Pills -->
@@ -397,7 +407,12 @@
                             <strong style="font-size:0.775rem; color:#854d0e; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
                                 🟡 Database Duplication Matches (Yellow Highlight):
                             </strong>
-                            <div id="copyrightMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
+                            <div id="dashboardCopyrPillsContainer" style="max-height:78px; overflow:hidden; transition:max-height 0.25s ease;">
+                                <div id="copyrightMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
+                            </div>
+                            <button type="button" class="read-more-btn" id="toggleDashboardCopyrPillsBtn" onclick="toggleDashboardPills('dashboardCopyrPillsContainer', this)" style="display:none; margin-top:4px;">
+                                more
+                            </button>
                         </div>
 
                         <!-- Highlighted Overlap Full Preview Box -->
@@ -455,10 +470,16 @@
                         </select>
                     </div>
 
-                    <!-- POST BLOG -->
-                    <button type="button" class="btn-primary" onclick="publishBlog()">
-                        Post Blog
-                    </button>
+                    <!-- ACTION BUTTONS -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-top:1.25rem;">
+                        <button type="button" class="logout-btn" id="dashboardRegenerateBtn" onclick="generateBlogDraft(true)" style="display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer; padding:0.6rem 1rem; border-radius:6px; font-size:0.875rem; border:1px solid var(--border-color); background:#f9fafb;">
+                            <i class="ph ph-arrows-clockwise" id="dashboardRegenSpinner"></i>
+                            <span id="dashboardRegenBtnText">Regenerate AI Text</span>
+                        </button>
+                        <button type="button" class="btn-primary" onclick="publishBlog()" style="padding:0.6rem 1.4rem; border-radius:6px; font-weight:600; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
+                            <i class="ph ph-paper-plane-tilt"></i> Post Blog
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -625,7 +646,7 @@
                 plagPills.innerHTML = "";
                 if (plagiarismPhrases && plagiarismPhrases.length) {
                     plagWrapper.style.display = "block";
-                    plagiarismPhrases.slice(0, 10).forEach(phrase => {
+                    plagiarismPhrases.forEach(phrase => {
                         const pill = document.createElement("span");
                         pill.className = "matched-phrase-pill-plagiarism";
                         pill.textContent = `"${phrase}"`;
@@ -641,7 +662,7 @@
                 copyrPills.innerHTML = "";
                 if (copyrightPhrases && copyrightPhrases.length) {
                     copyrWrapper.style.display = "block";
-                    copyrightPhrases.slice(0, 10).forEach(phrase => {
+                    copyrightPhrases.forEach(phrase => {
                         const pill = document.createElement("span");
                         pill.className = "matched-phrase-pill-copyright";
                         pill.textContent = `"${phrase}"`;
@@ -838,7 +859,7 @@
                 plagPills.innerHTML = "";
                 if (plagPhrases.length) {
                     plagWrapper.style.display = "block";
-                    plagPhrases.slice(0, 10).forEach(phrase => {
+                    plagPhrases.forEach(phrase => {
                         const pill = document.createElement("span");
                         pill.className = "matched-phrase-pill-plagiarism";
                         pill.textContent = `"${phrase}"`;
@@ -853,7 +874,7 @@
                 copyrPills.innerHTML = "";
                 if (copyrPhrases.length) {
                     copyrWrapper.style.display = "block";
-                    copyrPhrases.slice(0, 10).forEach(phrase => {
+                    copyrPhrases.forEach(phrase => {
                         const pill = document.createElement("span");
                         pill.className = "matched-phrase-pill-copyright";
                         pill.textContent = `"${phrase}"`;
@@ -863,12 +884,50 @@
                     copyrWrapper.style.display = "none";
                 }
             }
+
+            checkDashboardPillClamps();
+        }
+
+        function toggleDashboardPills(containerId, btn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (container.style.maxHeight === "none") {
+                container.style.maxHeight = "78px";
+                btn.innerText = "more";
+            } else {
+                container.style.maxHeight = "none";
+                btn.innerText = "less";
+            }
+        }
+
+        function checkDashboardPillClamps() {
+            setTimeout(() => {
+                const plagContainer = document.getElementById("dashboardPlagPillsContainer");
+                const plagBtn = document.getElementById("toggleDashboardPlagPillsBtn");
+                if (plagContainer && plagBtn) {
+                    if (plagContainer.scrollHeight > 82) {
+                        plagBtn.style.display = "inline-block";
+                    } else {
+                        plagBtn.style.display = "none";
+                    }
+                }
+
+                const copyrContainer = document.getElementById("dashboardCopyrPillsContainer");
+                const copyrBtn = document.getElementById("toggleDashboardCopyrPillsBtn");
+                if (copyrContainer && copyrBtn) {
+                    if (copyrContainer.scrollHeight > 82) {
+                        copyrBtn.style.display = "inline-block";
+                    } else {
+                        copyrBtn.style.display = "none";
+                    }
+                }
+            }, 50);
         }
 
         /* =========================
            GENERATE BLOG DRAFT
         ========================= */
-        async function generateBlogDraft() {
+        async function generateBlogDraft(isRegenerate = false) {
             const imageInput = document.getElementById("blogImage");
 
             if (!imageInput || !imageInput.files.length) {
@@ -898,6 +957,15 @@
             if (genBtn) {
                 genBtn.innerText = "Generating with AI...";
                 genBtn.disabled = true;
+            }
+
+            const regenBtn = document.getElementById("dashboardRegenerateBtn");
+            const regenSpinner = document.getElementById("dashboardRegenSpinner");
+            const regenText = document.getElementById("dashboardRegenBtnText");
+            if (isRegenerate && regenBtn) {
+                regenBtn.disabled = true;
+                if (regenText) regenText.textContent = "Regenerating...";
+                if (regenSpinner) regenSpinner.classList.add("ph-spin");
             }
 
             try {
@@ -984,6 +1052,11 @@
                 if (genBtn) {
                     genBtn.innerText = origText;
                     genBtn.disabled = false;
+                }
+                if (regenBtn) {
+                    regenBtn.disabled = false;
+                    if (regenText) regenText.textContent = "Regenerate AI Text";
+                    if (regenSpinner) regenSpinner.classList.remove("ph-spin");
                 }
             }
         }

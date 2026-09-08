@@ -1,4 +1,6 @@
-"""Pipeline orchestrator: Ingestion -> Features -> Tracery Grammar Generation."""
+"""
+Pipeline orchestrator: Ingestion -> Features -> Semantic Scene Analysis -> Tracery Grammar Generation.
+"""
 
 from typing import Dict, Any, Union
 from image_to_blog.ingestion import load_image
@@ -8,12 +10,13 @@ from image_to_blog.features.texture import sharpness_score, edge_density
 from image_to_blog.features.composition import orientation, focal_region, busyness_label
 from image_to_blog.features.metadata import extract_exif
 from image_to_blog.features.text_ocr import extract_text
+from image_to_blog.features.scene_analyzer import detect_scene_semantics
 from image_to_blog.tracery_generator import generate_blog_text_tracery
 
 
 def build_feature_dict(image_input: Union[str, bytes, Any]) -> Dict[str, Any]:
     """
-    Run ingestion and all feature extractors over the image.
+    Run ingestion and all feature extractors including semantic scene analysis over the image.
     """
     pil_img, cv_bgr = load_image(image_input)
 
@@ -38,6 +41,9 @@ def build_feature_dict(image_input: Union[str, bytes, Any]) -> Dict[str, Any]:
     exif = extract_exif(pil_img)
     ocr = extract_text(pil_img)
 
+    # Semantic Scene Classification & Context
+    scene_semantics = detect_scene_semantics(cv_bgr, ocr_text=ocr, exif=exif)
+
     return {
         "dominant_colors_rgb": dom_colors,
         "named_colors": color_names,
@@ -53,6 +59,12 @@ def build_feature_dict(image_input: Union[str, bytes, Any]) -> Dict[str, Any]:
         "busyness_label": busyness,
         "exif": exif,
         "ocr_text": ocr,
+        "scene_semantics": scene_semantics,
+        "scene_category": scene_semantics.get("scene_category", "artistic_composition"),
+        "setting": scene_semantics.get("setting", "visual scene"),
+        "atmosphere": scene_semantics.get("atmosphere", "harmonious"),
+        "key_elements": scene_semantics.get("key_elements", []),
+        "theme": scene_semantics.get("theme", "art"),
         "image_size": pil_img.size,
     }
 

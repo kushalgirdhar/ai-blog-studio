@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Blog Post - {{ post.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=14">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .flash-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .flash-success {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        mark.copyright-highlight {
+            background: #fef08a !important;
+            color: #854d0e !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 600 !important;
+            border: 1px solid #fde047 !important;
+        }
+        mark.plagiarism-highlight {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 600 !important;
+            border: 1px solid #f87171 !important;
+        }
+        .field-highlight-box {
+            background: #fffdf5;
+            border: 1px dashed #f59e0b;
+            border-radius: 6px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #1f2937;
+            margin-top: 0.35rem;
+        }
+        .status-banner-box {
+            display: block;
+            padding: 0.9rem 1.15rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .banner-dual {
+            background: #fff8f1;
+            border: 1px solid #fed7aa;
+            color: #7c2d12;
+        }
+        .badge-dual {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+        .banner-plagiarism {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        .badge-plagiarism-style {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .banner-copyright {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+        .badge-copyright-style {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .banner-clean {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+        .badge-clean-style {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .is-hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="dashboard-layout">
+
+    <!-- Header Navigation -->
+    <header class="dashboard-nav">
+        <h1>Edit Blog Post</h1>
+        <div>
+            <a href="{{ url_for('main.dashboard') }}" class="logout-btn" style="margin-right:0.5rem;">
+                <i class="ph ph-arrow-left"></i> Dashboard
+            </a>
+            <a href="{{ url_for('main.home') }}" class="logout-btn">
+                Home Feed
+            </a>
+        </div>
+    </header>
+
+    <main class="dashboard-content" style="padding-top:1.5rem;">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container" style="max-width:720px; margin:0 auto 1.5rem auto;">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}" style="padding:0.75rem 1rem; border-radius:8px; margin-bottom:0.5rem; font-size:0.9rem;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- EDIT FORM CONTAINER -->
+        <div class="edit-blog-container">
+
+            <div class="edit-blog-header">
+                <h1>
+                    <i class="ph ph-pencil-simple-line"></i>
+                    Edit Post #{{ post.id }}
+                </h1>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span class="visibility-badge badge-{{ post.visibility }}">
+                        {{ post.visibility.replace('_', ' ').title() }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- COPYRIGHT & PLAGIARISM STATUS BANNER -->
+            {% if copyright_check.has_plagiarism and copyright_check.has_copyright %}
+                {% set banner_class = "banner-dual" %}
+                {% set badge_class = "badge-dual" %}
+            {% elif copyright_check.has_plagiarism %}
+                {% set banner_class = "banner-plagiarism" %}
+                {% set badge_class = "badge-plagiarism-style" %}
+            {% elif copyright_check.has_copyright or copyright_check.is_flagged %}
+                {% set banner_class = "banner-copyright" %}
+                {% set badge_class = "badge-copyright-style" %}
+            {% else %}
+                {% set banner_class = "banner-clean" %}
+                {% set badge_class = "badge-clean-style" %}
+            {% endif %}
+
+            <div id="copyrightStatusBanner" class="status-banner-box {{ banner_class }}">
+                <div id="copyrightStatusHeader" style="display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:0.95rem;">
+                    <span id="copyrightStatusTitle">
+                        {% if copyright_check.has_plagiarism and copyright_check.has_copyright %}
+                            <i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism (Red) & Copyright (Yellow) Overlap Detected
+                        {% elif copyright_check.has_plagiarism %}
+                            <i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism Warning: Reference Matches Detected
+                        {% elif copyright_check.has_copyright or copyright_check.is_flagged %}
+                            <i class="ph ph-warning" style="margin-right:4px;"></i> Copyright / Duplication: Database Overlap Detected
+                        {% else %}
+                            <i class="ph ph-shield-check" style="margin-right:4px;"></i> Copyright & Plagiarism Check Passed: 100% Unique
+                        {% endif %}
+                    </span>
+                    <span id="copyrightSimilarityBadge" class="{{ badge_class }}" style="padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:700;">
+                        {% if copyright_check.is_flagged or copyright_check.has_plagiarism or copyright_check.has_copyright %}
+                            {{ (copyright_check.max_similarity * 100)|round|int }}% match
+                        {% else %}
+                            Clean
+                        {% endif %}
+                    </span>
+                </div>
+
+                <p id="copyrightStatusMessage" style="margin:0.5rem 0 0 0; font-size:0.85rem;">
+                    {{ copyright_check.summary_message or "Overlapping phrases were identified. Edit the text to make it unique:" }}
+                </p>
+
+                <!-- Matched Plagiarism Pills -->
+                <div id="plagiarismMatchedPillsWrapper" class="{% if not copyright_check.plagiarism_phrases %}is-hidden{% endif %}" style="margin-top:0.75rem;">
+                    <strong style="font-size:0.775rem; color:#991b1b; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                        🔴 Reference Plagiarism Matches (Red Highlight):
+                    </strong>
+                    <div id="plagiarismPillsContainer" style="max-height:78px; overflow:hidden; transition:max-height 0.25s ease;">
+                        <div id="plagiarismMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+                            {% for phrase in copyright_check.plagiarism_phrases %}
+                                <span class="matched-phrase-pill-plagiarism">"{{ phrase }}"</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="button" class="read-more-btn" id="togglePlagPillsBtn" onclick="togglePills('plagiarismPillsContainer', this)" style="display:none; margin-top:4px;">
+                        more
+                    </button>
+                </div>
+
+                <!-- Matched Copyright / Duplication Pills -->
+                <div id="copyrightMatchedPillsWrapper" class="{% if not copyright_check.copyright_phrases %}is-hidden{% endif %}" style="margin-top:0.75rem;">
+                    <strong style="font-size:0.775rem; color:#854d0e; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                        🟡 Database Duplication Matches (Yellow Highlight):
+                    </strong>
+                    <div id="copyrightPillsContainer" style="max-height:78px; overflow:hidden; transition:max-height 0.25s ease;">
+                        <div id="copyrightMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+                            {% for phrase in copyright_check.copyright_phrases %}
+                                <span class="matched-phrase-pill-copyright">"{{ phrase }}"</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="button" class="read-more-btn" id="toggleCopyrPillsBtn" onclick="togglePills('copyrightPillsContainer', this)" style="display:none; margin-top:4px;">
+                        more
+                    </button>
+                </div>
+
+                <!-- Highlighted Overlap Full Preview Box -->
+                <div id="copyrightHighlightContainer" class="{% if not copyright_check.is_flagged and not copyright_check.plagiarism_phrases and not copyright_check.copyright_phrases %}is-hidden{% endif %}" style="margin-top:0.85rem; padding:0.75rem 1rem; background:#fff; border-radius:6px; border:1px solid #e5e7eb; box-shadow:inset 0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; flex-wrap:wrap; gap:0.25rem;">
+                        <strong style="font-size:0.825rem; color:#1f2937; display:flex; align-items:center; gap:0.3rem;">
+                            <i class="ph ph-highlighter"></i> Highlighted Analysis Preview:
+                        </strong>
+                        <div style="display:flex; gap:0.6rem; font-size:0.725rem;">
+                            <span style="color:#991b1b; font-weight:600;"><span style="display:inline-block; width:8px; height:8px; background:#fca5a5; border-radius:2px; margin-right:3px;"></span>Red = Plagiarism</span>
+                            <span style="color:#854d0e; font-weight:600;"><span style="display:inline-block; width:8px; height:8px; background:#fde047; border-radius:2px; margin-right:3px;"></span>Yellow = Shared Content</span>
+                        </div>
+                    </div>
+                    <div id="copyrightHighlightedPreview" style="font-size:0.85rem; color:#1f2937; line-height:1.6; white-space:pre-wrap; max-height:160px; overflow-y:auto; padding-right:0.5rem;">
+                        {{ copyright_check.highlighted_text|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('blog.edit_blog', post_id=post.id) }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <input type="hidden" name="redirect_to" value="{{ request.args.get('redirect_to', 'dashboard') }}">
+
+                <!-- CURRENT IMAGE PREVIEW -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label style="font-weight:600; font-size:0.875rem; display:block; margin-bottom:0.4rem; color:var(--text-primary);">
+                        Current Image
+                    </label>
+                    {% if post.photo %}
+                    <img src="{{ url_for('static', filename=post.photo) }}" alt="{{ post.title }}" class="edit-blog-preview-img" id="editImagePreview">
+                    {% else %}
+                    <div style="height:140px; background:#f8fafc; border:1px dashed var(--border-color); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); margin-bottom:0.75rem;">
+                        <span>No image currently attached</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- REPLACE IMAGE -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label for="photo" style="font-weight:600; font-size:0.875rem; display:block; margin-bottom:0.4rem; color:var(--text-primary);">
+                        Replace Image (Optional)
+                    </label>
+                    {{ form.photo(id="photo", style="width:100%; padding:0.5rem; border:1px solid var(--border-color); border-radius:6px; background:#fff; font-size:0.875rem;") }}
+                    {% if form.photo.errors %}
+                        <div style="color:var(--error-color); font-size:0.8rem; margin-top:0.25rem;">
+                            {{ form.photo.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- REGENERATE AI CONTENT CARD -->
+                <div style="margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; background:#f0f9ff; border:1px solid #bae6fd; padding:0.85rem 1.15rem; border-radius:8px; gap:1rem; flex-wrap:wrap;">
+                    <div>
+                        <strong style="color:#0369a1; font-size:0.9rem; display:flex; align-items:center; gap:0.35rem;">
+                            <i class="ph ph-sparkle"></i> AI Content Regeneration
+                        </strong>
+                        <p style="margin:0.2rem 0 0 0; color:#0c4a6e; font-size:0.8rem;">
+                            Regenerate title, short description, and full article using image analysis.
+                        </p>
+                    </div>
+                    <button type="button" id="regenerateBtn" class="btn-primary" onclick="regenerateBlogContent()" style="padding:0.5rem 1.1rem; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.4rem; cursor:pointer; flex-shrink:0;">
+                        <i class="ph ph-arrows-clockwise" id="regenerateSpinner"></i>
+                        <span id="regenerateBtnText">Regenerate AI Content</span>
+                    </button>
+                </div>
+
+                <!-- TITLE -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label for="title" style="font-weight:600; font-size:0.875rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; color:var(--text-primary);">
+                        <span>Blog Title</span>
+                        <span id="titleMatchCount" style="font-size:0.75rem; color:#b45309; font-weight:600; display:none;">⚠️ Matched phrases detected</span>
+                    </label>
+                    {{ form.title(id="title", class="form-input", oninput="updateLiveHighlights()", style="width:100%; padding:0.65rem 0.85rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem; font-family:inherit;") }}
+                    <div id="highlightedTitlePreview" class="field-highlight-box" style="display:none;"></div>
+                    {% if form.title.errors %}
+                        <div style="color:var(--error-color); font-size:0.8rem; margin-top:0.25rem;">
+                            {{ form.title.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- SHORT DESCRIPTION -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label for="short_description" style="font-weight:600; font-size:0.875rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; color:var(--text-primary);">
+                        <span>Short Description</span>
+                        <span id="shortMatchCount" style="font-size:0.75rem; color:#b45309; font-weight:600; display:none;">⚠️ Matched phrases detected</span>
+                    </label>
+                    {{ form.short_description(id="short_description", class="form-input", oninput="updateLiveHighlights()", style="width:100%; padding:0.65rem 0.85rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.9rem; font-family:inherit;") }}
+                    <div id="highlightedShortPreview" class="field-highlight-box" style="display:none;"></div>
+                    {% if form.short_description.errors %}
+                        <div style="color:var(--error-color); font-size:0.8rem; margin-top:0.25rem;">
+                            {{ form.short_description.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- DESCRIPTION -->
+                <div class="form-group" style="margin-bottom:1.25rem;">
+                    <label for="description" style="font-weight:600; font-size:0.875rem; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; color:var(--text-primary);">
+                        <span>Full Description</span>
+                        <span id="descMatchCount" style="font-size:0.75rem; color:#b45309; font-weight:600; display:none;">⚠️ Matched phrases detected</span>
+                    </label>
+                    {{ form.description(id="description", class="form-input", rows=8, oninput="updateLiveHighlights()", style="width:100%; padding:0.65rem 0.85rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.9rem; font-family:inherit; line-height:1.5; resize:vertical;") }}
+                    <div id="highlightedDescPreview" class="field-highlight-box" style="display:none;"></div>
+                    {% if form.description.errors %}
+                        <div style="color:var(--error-color); font-size:0.8rem; margin-top:0.25rem;">
+                            {{ form.description.errors[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- VISIBILITY -->
+                <div class="form-group" style="margin-bottom:1.75rem;">
+                    <label for="visibility" style="font-weight:600; font-size:0.875rem; display:block; margin-bottom:0.4rem; color:var(--text-primary);">
+                        Visibility
+                    </label>
+                    {{ form.visibility(id="visibility", class="form-input", style="width:100%; padding:0.6rem 0.85rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.9rem; font-family:inherit; background:#fff;") }}
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; align-items:center;">
+                    <a href="{{ url_for('main.dashboard') }}" class="logout-btn" style="text-decoration:none; padding:0.6rem 1.2rem; border-radius:6px; border:1px solid var(--border-color); background:#f9fafb; color:var(--text-secondary);">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-primary" style="padding:0.6rem 1.4rem; border-radius:6px; font-weight:600; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.35rem; cursor:pointer;">
+                        <i class="ph ph-check-circle"></i> Save Changes
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+
+    <!-- EMBEDDED JSON DATA -->
+    <script id="copyrightDataJson" type="application/json">
+        {{ copyright_check|tojson }}
+    </script>
+
+    <!-- LIVE HIGHLIGHTING SCRIPT -->
+    <script>
+        const copyrightDataEl = document.getElementById("copyrightDataJson");
+        const initialCheckData = copyrightDataEl ? JSON.parse(copyrightDataEl.textContent || "{}") : {};
+
+        window.activePlagiarismPhrases = new Set(initialCheckData.plagiarism_phrases || []);
+        window.activeCopyrightPhrases = new Set(initialCheckData.copyright_phrases || []);
+
+        function highlightPhrasesInString(text, copyrightPhrases = [], plagiarismPhrases = []) {
+            if (!text) return text;
+
+            const plagSet = new Set(plagiarismPhrases.map(p => p.trim().toLowerCase()).filter(p => p.length >= 3));
+            const copyrSet = new Set(copyrightPhrases.map(p => p.trim().toLowerCase()).filter(p => p.length >= 3 && !plagSet.has(p)));
+
+            const typedSpans = [];
+            const lowerText = text.toLowerCase();
+
+            plagSet.forEach(phrase => {
+                let idx = lowerText.indexOf(phrase);
+                while (idx !== -1) {
+                    typedSpans.push({ start: idx, end: idx + phrase.length, type: "plagiarism" });
+                    idx = lowerText.indexOf(phrase, idx + 1);
+                }
+            });
+
+            copyrSet.forEach(phrase => {
+                let idx = lowerText.indexOf(phrase);
+                while (idx !== -1) {
+                    typedSpans.push({ start: idx, end: idx + phrase.length, type: "copyright" });
+                    idx = lowerText.indexOf(phrase, idx + 1);
+                }
+            });
+
+            if (!typedSpans.length) return text;
+
+            typedSpans.sort((a, b) => a.start - b.start || b.end - a.end || (a.type === "plagiarism" ? -1 : 1));
+
+            const merged = [];
+            let cur = { ...typedSpans[0] };
+
+            for (let i = 1; i < typedSpans.length; i++) {
+                const next = typedSpans[i];
+                if (next.start <= cur.end) {
+                    cur.end = Math.max(cur.end, next.end);
+                    if (next.type === "plagiarism") cur.type = "plagiarism";
+                } else {
+                    merged.push(cur);
+                    cur = { ...next };
+                }
+            }
+            merged.push(cur);
+
+            let result = "";
+            let lastIdx = 0;
+            merged.forEach(span => {
+                result += text.slice(lastIdx, span.start);
+                const markClass = span.type === "plagiarism" ? "plagiarism-highlight" : "copyright-highlight";
+                const markStyle = span.type === "plagiarism"
+                    ? "background:#fee2e2; color:#991b1b; padding:2px 5px; border-radius:4px; font-weight:600; border:1px solid #f87171;"
+                    : "background:#fef08a; color:#854d0e; padding:2px 5px; border-radius:4px; font-weight:600; border:1px solid #fde047;";
+                result += `<mark class="${markClass}" style="${markStyle}">${text.slice(span.start, span.end)}</mark>`;
+                lastIdx = span.end;
+            });
+            result += text.slice(lastIdx);
+            return result;
+        }
+
+        function updateLiveHighlights() {
+            const titleInput = document.getElementById("title");
+            const shortInput = document.getElementById("short_description");
+            const descInput = document.getElementById("description");
+
+            const plagPhrases = Array.from(window.activePlagiarismPhrases || []);
+            const copyrPhrases = Array.from(window.activeCopyrightPhrases || []);
+
+            const titleHighlight = document.getElementById("highlightedTitlePreview");
+            const shortHighlight = document.getElementById("highlightedShortPreview");
+            const descHighlight = document.getElementById("highlightedDescPreview");
+
+            const titleCount = document.getElementById("titleMatchCount");
+            const shortCount = document.getElementById("shortMatchCount");
+            const descCount = document.getElementById("descMatchCount");
+
+            if (!plagPhrases.length && !copyrPhrases.length) {
+                if (titleHighlight) titleHighlight.style.display = "none";
+                if (shortHighlight) shortHighlight.style.display = "none";
+                if (descHighlight) descHighlight.style.display = "none";
+                if (titleCount) titleCount.style.display = "none";
+                if (shortCount) shortCount.style.display = "none";
+                if (descCount) descCount.style.display = "none";
+                return;
+            }
+
+            // Title
+            if (titleInput && titleHighlight) {
+                const hTitle = highlightPhrasesInString(titleInput.value, copyrPhrases, plagPhrases);
+                if (hTitle.includes("<mark")) {
+                    titleHighlight.style.display = "block";
+                    titleHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hTitle}`;
+                    if (titleCount) titleCount.style.display = "inline";
+                } else {
+                    titleHighlight.style.display = "none";
+                    if (titleCount) titleCount.style.display = "none";
+                }
+            }
+
+            // Short Description
+            if (shortInput && shortHighlight) {
+                const hShort = highlightPhrasesInString(shortInput.value, copyrPhrases, plagPhrases);
+                if (hShort.includes("<mark")) {
+                    shortHighlight.style.display = "block";
+                    shortHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hShort}`;
+                    if (shortCount) shortCount.style.display = "inline";
+                } else {
+                    shortHighlight.style.display = "none";
+                    if (shortCount) shortCount.style.display = "none";
+                }
+            }
+
+            // Full Description
+            if (descInput && descHighlight) {
+                const hDesc = highlightPhrasesInString(descInput.value, copyrPhrases, plagPhrases);
+                if (hDesc.includes("<mark")) {
+                    descHighlight.style.display = "block";
+                    descHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hDesc}`;
+                    if (descCount) descCount.style.display = "inline";
+                } else {
+                    descHighlight.style.display = "none";
+                    if (descCount) descCount.style.display = "none";
+                }
+            }
+
+            // Update full preview container
+            const highlightPreview = document.getElementById("copyrightHighlightedPreview");
+            if (highlightPreview && (plagPhrases.length || copyrPhrases.length)) {
+                const t = titleInput?.value || "";
+                const s = shortInput?.value || "";
+                const d = descInput?.value || "";
+                const combined = `Title: ${t}\n\nShort: ${s}\n\nDescription: ${d}`;
+                highlightPreview.innerHTML = highlightPhrasesInString(combined, copyrPhrases, plagPhrases);
+            }
+
+            checkPillClamps();
+        }
+
+        function togglePills(containerId, btn) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (container.style.maxHeight === "none") {
+                container.style.maxHeight = "78px";
+                btn.innerText = "more";
+            } else {
+                container.style.maxHeight = "none";
+                btn.innerText = "less";
+            }
+        }
+
+        function checkPillClamps() {
+            const plagContainer = document.getElementById("plagiarismPillsContainer");
+            const plagBtn = document.getElementById("togglePlagPillsBtn");
+            if (plagContainer && plagBtn) {
+                if (plagContainer.scrollHeight > 82) {
+                    plagBtn.style.display = "inline-block";
+                } else {
+                    plagBtn.style.display = "none";
+                }
+            }
+
+            const copyrContainer = document.getElementById("copyrightPillsContainer");
+            const copyrBtn = document.getElementById("toggleCopyrPillsBtn");
+            if (copyrContainer && copyrBtn) {
+                if (copyrContainer.scrollHeight > 82) {
+                    copyrBtn.style.display = "inline-block";
+                } else {
+                    copyrBtn.style.display = "none";
+                }
+            }
+        }
+
+        async function regenerateBlogContent() {
+            const btn = document.getElementById("regenerateBtn");
+            const btnText = document.getElementById("regenerateBtnText");
+            const spinner = document.getElementById("regenerateSpinner");
+            const photoInput = document.getElementById("photo");
+
+            if (btn) btn.disabled = true;
+            if (btnText) btnText.textContent = "Regenerating with AI...";
+            if (spinner) spinner.classList.add("ph-spin");
+
+            const formData = new FormData();
+            if (photoInput && photoInput.files && photoInput.files.length) {
+                formData.append("photo", photoInput.files[0]);
+            }
+            const csrfInput = document.querySelector('input[name="csrf_token"]');
+            if (csrfInput && csrfInput.value) {
+                formData.append("csrf_token", csrfInput.value);
+            }
+
+            try {
+                const response = await fetch("{{ url_for('blog.regenerate_blog_post', post_id=post.id) }}", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(data.error || "Failed to regenerate blog post.");
+                    return;
+                }
+
+                // 1. Update form inputs
+                if (document.getElementById("title")) document.getElementById("title").value = data.title || "";
+                if (document.getElementById("short_description")) document.getElementById("short_description").value = data.short_description || "";
+                if (document.getElementById("description")) document.getElementById("description").value = data.description || "";
+
+                // 2. Update active phrases
+                const check = data.copyright_check || {};
+                window.activePlagiarismPhrases = check.plagiarism_phrases || [];
+                window.activeCopyrightPhrases = check.copyright_phrases || [];
+
+                // 3. Update Banner UI
+                const banner = document.getElementById("copyrightStatusBanner");
+                const statusTitle = document.getElementById("copyrightStatusTitle");
+                const badge = document.getElementById("copyrightSimilarityBadge");
+                const msg = document.getElementById("copyrightStatusMessage");
+
+                if (banner) {
+                    banner.className = "status-banner-box";
+                    if (check.has_plagiarism && check.has_copyright) {
+                        banner.classList.add("banner-dual");
+                        if (badge) {
+                            badge.className = "badge-dual";
+                            badge.textContent = `${Math.round((check.max_similarity || 0) * 100)}% match`;
+                        }
+                        if (statusTitle) statusTitle.innerHTML = `<i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism (Red) & Copyright (Yellow) Overlap Detected`;
+                    } else if (check.has_plagiarism) {
+                        banner.classList.add("banner-plagiarism");
+                        if (badge) {
+                            badge.className = "badge-plagiarism-style";
+                            badge.textContent = `${Math.round((check.max_similarity || 0) * 100)}% match`;
+                        }
+                        if (statusTitle) statusTitle.innerHTML = `<i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism Warning: Reference Matches Detected`;
+                    } else if (check.has_copyright || check.is_flagged) {
+                        banner.classList.add("banner-copyright");
+                        if (badge) {
+                            badge.className = "badge-copyright-style";
+                            badge.textContent = `${Math.round((check.max_similarity || 0) * 100)}% match`;
+                        }
+                        if (statusTitle) statusTitle.innerHTML = `<i class="ph ph-warning" style="margin-right:4px;"></i> Copyright / Duplication: Database Overlap Detected`;
+                    } else {
+                        banner.classList.add("banner-clean");
+                        if (badge) {
+                            badge.className = "badge-clean-style";
+                            badge.textContent = "Clean";
+                        }
+                        if (statusTitle) statusTitle.innerHTML = `<i class="ph ph-shield-check" style="margin-right:4px;"></i> Copyright & Plagiarism Check Passed: 100% Unique`;
+                    }
+                    if (msg) msg.textContent = check.summary_message || "Overlapping phrases were identified. Edit the text to make it unique:";
+                }
+
+                // 4. Update Matched Plagiarism Pills
+                const plagWrapper = document.getElementById("plagiarismMatchedPillsWrapper");
+                const plagPills = document.getElementById("plagiarismMatchedPills");
+                if (plagPills && plagWrapper) {
+                    plagPills.innerHTML = "";
+                    if (window.activePlagiarismPhrases.length) {
+                        plagWrapper.classList.remove("is-hidden");
+                        window.activePlagiarismPhrases.forEach(phrase => {
+                            const pill = document.createElement("span");
+                            pill.className = "matched-phrase-pill-plagiarism";
+                            pill.textContent = `"${phrase}"`;
+                            plagPills.appendChild(pill);
+                        });
+                    } else {
+                        plagWrapper.classList.add("is-hidden");
+                    }
+                }
+
+                // 5. Update Matched Copyright Pills
+                const copyrWrapper = document.getElementById("copyrightMatchedPillsWrapper");
+                const copyrPills = document.getElementById("copyrightMatchedPills");
+                if (copyrPills && copyrWrapper) {
+                    copyrPills.innerHTML = "";
+                    if (window.activeCopyrightPhrases.length) {
+                        copyrWrapper.classList.remove("is-hidden");
+                        window.activeCopyrightPhrases.forEach(phrase => {
+                            const pill = document.createElement("span");
+                            pill.className = "matched-phrase-pill-copyright";
+                            pill.textContent = `"${phrase}"`;
+                            copyrPills.appendChild(pill);
+                        });
+                    } else {
+                        copyrWrapper.classList.add("is-hidden");
+                    }
+                }
+
+                // 6. Update Highlight Preview Box
+                const highlightContainer = document.getElementById("copyrightHighlightContainer");
+                const highlightPreview = document.getElementById("copyrightHighlightedPreview");
+                if (highlightContainer && highlightPreview) {
+                    if (check.is_flagged || window.activePlagiarismPhrases.length || window.activeCopyrightPhrases.length) {
+                        highlightContainer.classList.remove("is-hidden");
+                        const combined = `Title: ${data.title || ""}\n\nShort: ${data.short_description || ""}\n\nDescription: ${data.description || ""}`;
+                        highlightPreview.innerHTML = highlightPhrasesInString(combined, window.activeCopyrightPhrases, window.activePlagiarismPhrases);
+                    } else {
+                        highlightContainer.classList.add("is-hidden");
+                    }
+                }
+
+                // 7. Update Live Input Field Highlights & Pills
+                updateLiveHighlights();
+                checkPillClamps();
+
+            } catch (err) {
+                console.error("Error regenerating blog:", err);
+                alert("Failed to regenerate blog content. Please try again.");
+            } finally {
+                if (btn) btn.disabled = false;
+                if (btnText) btnText.textContent = "Regenerate AI Content";
+                if (spinner) spinner.classList.remove("ph-spin");
+            }
+        }
+
+        // Run once on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            const photoInput = document.getElementById("photo");
+            if (photoInput) {
+                photoInput.addEventListener("change", function () {
+                    if (this.files && this.files[0]) {
+                        const preview = document.getElementById("editImagePreview");
+                        if (preview) {
+                            preview.src = URL.createObjectURL(this.files[0]);
+                        }
+                    }
+                });
+            }
+
+            updateLiveHighlights();
+            checkPillClamps();
+        });
+    </script>
+</body>
+</html>
