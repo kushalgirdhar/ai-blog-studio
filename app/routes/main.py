@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.comment import Comment
 from app.forms import BlogPostForm, CommentForm, ProfileForm
 from werkzeug.security import generate_password_hash
+from db_copyright_checker import annotate_posts_with_copyright_info
 
 main = Blueprint("main", __name__)
 
@@ -21,6 +22,7 @@ def home():
         .order_by(BlogPost.created_at.desc())
         .all()
     )
+    annotate_posts_with_copyright_info(public_posts)
 
     return render_template(
         "home.html", public_posts=public_posts, comment_form=CommentForm()
@@ -51,6 +53,7 @@ def dashboard():
         .order_by(BlogPost.created_at.desc())
         .all()
     )
+    annotate_posts_with_copyright_info(my_posts)
     response = make_response(
         render_template(
             "dashboard.html",

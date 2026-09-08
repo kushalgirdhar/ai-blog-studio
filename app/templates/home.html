@@ -103,17 +103,35 @@
 
                     <div class="post-content">
                         <div class="post-title-wrapper">
-                            <h3 class="post-title">{{ post.title }}</h3>
-                            <span class="visibility-badge badge-{{ post.visibility }}">
-                                {{ post.visibility.replace('_', ' ').title() }}
-                            </span>
+                            <h3 class="post-title">
+                                {% if post.highlighted_title %}
+                                    {{ post.highlighted_title|safe }}
+                                {% else %}
+                                    {{ post.title }}
+                                {% endif %}
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                                {% if post.is_flagged %}
+                                <span class="badge-duplicate" title="{{ post.matched_phrases|length }} shared phrase(s) detected">
+                                    <i class="ph ph-warning-circle"></i> Shared Content
+                                </span>
+                                {% endif %}
+                                <span class="visibility-badge badge-{{ post.visibility }}">
+                                    {{ post.visibility.replace('_', ' ').title() }}
+                                </span>
+                            </div>
                         </div>
 
                         <div class="post-text-content">
                             {% if post.short_description %}
                             <div class="desc-container">
                                 <p class="post-desc line-clamp-2" id="short-desc-{{ loop.index }}">
-                                    <strong>Short:</strong> {{ post.short_description }}
+                                    <strong>Short:</strong>
+                                    {% if post.highlighted_short_description %}
+                                        {{ post.highlighted_short_description|safe }}
+                                    {% else %}
+                                        {{ post.short_description }}
+                                    {% endif %}
                                 </p>
                                 <button class="read-more-btn"
                                     onclick="toggleDesc(this, 'short-desc-{{ loop.index }}', 2)">more</button>
@@ -123,7 +141,12 @@
                             {% if post.description %}
                             <div class="desc-container">
                                 <p class="post-full-desc line-clamp-3" id="full-desc-{{ loop.index }}">
-                                    <strong>Full:</strong> {{ post.description }}
+                                    <strong>Full:</strong>
+                                    {% if post.highlighted_description %}
+                                        {{ post.highlighted_description|safe }}
+                                    {% else %}
+                                        {{ post.description }}
+                                    {% endif %}
                                 </p>
                                 <button class="read-more-btn"
                                     onclick="toggleDesc(this, 'full-desc-{{ loop.index }}', 3)">more</button>
@@ -140,8 +163,8 @@
                         <div
                             style="margin-bottom: 1rem; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.5rem;">
                             {% for comment in post.comments %}
-                            <div class="comment-item-{{ post.id }}"
-                                style="font-size: 0.85rem; background: #ffffff; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color); {% if loop.index > 1 %}display: none;{% endif %}">
+                            <div class="comment-item-{{ post.id }} {% if loop.index > 1 %}hidden-comment{% endif %}"
+                                style="font-size: 0.85rem; background: #ffffff; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
                                     <strong style="color: var(--primary-color);">{% if comment.user %}
@@ -162,7 +185,7 @@
 
                             {% if post.comments|length > 1 %}
                             <div style="text-align: center; margin-top: -0.25rem;">
-                                <button type="button" onclick="toggleComments({{ post.id }}, this)"
+                                <button type="button" data-post-id="{{ post.id }}" onclick="toggleComments(this.dataset.postId, this)"
                                     style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem;"
                                     title="View all {{ post.comments|length }} comments">
                                     <i class="ph ph-caret-down"></i>
@@ -263,13 +286,16 @@
         function toggleComments(postId, btn) {
             const comments = document.querySelectorAll('.comment-item-' + postId);
             let isExpanded = false;
-            comments.forEach((comment, index) => {
+
+            comments.forEach(function (comment, index) {
                 if (index > 0) {
-                    if (comment.style.display === 'none' || !comment.style.display) {
-                        comment.style.display = 'block';
+                    if (comment.classList.contains("hidden-comment") || comment.style.display === "none") {
+                        comment.classList.remove("hidden-comment");
+                        comment.style.display = "block";
                         isExpanded = true;
                     } else {
-                        comment.style.display = 'none';
+                        comment.classList.add("hidden-comment");
+                        comment.style.display = "none";
                         isExpanded = false;
                     }
                 }

@@ -1,10 +1,6 @@
-"""Pipeline orchestrator: Ingestion -> Features -> Phrasing -> Jinja2 Rendering."""
 """Pipeline orchestrator: Ingestion -> Features -> Tracery Grammar Generation."""
 
-import os
 from typing import Dict, Any, Union
-import jinja2
-
 from image_to_blog.ingestion import load_image
 from image_to_blog.features.color import dominant_colors, name_colors
 from image_to_blog.features.light import brightness_contrast, warmth_score
@@ -12,16 +8,7 @@ from image_to_blog.features.texture import sharpness_score, edge_density
 from image_to_blog.features.composition import orientation, focal_region, busyness_label
 from image_to_blog.features.metadata import extract_exif
 from image_to_blog.features.text_ocr import extract_text
-from image_to_blog.phrasing import build_phrases
 from image_to_blog.tracery_generator import generate_blog_text_tracery
-
-TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
-_jinja_env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(TEMPLATES_DIR),
-    autoescape=False,
-    trim_blocks=True,
-    lstrip_blocks=True,
-)
 
 
 def build_feature_dict(image_input: Union[str, bytes, Any]) -> Dict[str, Any]:
@@ -70,39 +57,9 @@ def build_feature_dict(image_input: Union[str, bytes, Any]) -> Dict[str, Any]:
     }
 
 
-def build_phrase_dict(feature_dict: Dict[str, Any], seed: Union[int, None] = None) -> Dict[str, Any]:
-    """
-    Translate extracted features into descriptive textual phrases.
-    """
-    return build_phrases(feature_dict, seed=seed)
-
-
-def render(phrase_dict: Dict[str, Any]) -> Dict[str, str]:
-    """
-    Render Jinja2 templates for title, short description, and full description.
-    """
-    title_template = _jinja_env.get_template("title.j2")
-    short_template = _jinja_env.get_template("short_description.j2")
-    long_template = _jinja_env.get_template("long_description.j2")
-
-    title = title_template.render(**phrase_dict).strip()
-    short_desc = short_template.render(**phrase_dict).strip()
-    long_desc = long_template.render(**phrase_dict).strip()
-
-    return {
-        "title": title,
-        "short_description": short_desc,
-        "description": long_desc,
-    }
-
-
 def generate_blog(image_input: Union[str, bytes, Any], seed: Union[int, None] = None) -> Dict[str, str]:
     """
-    Full end-to-end generator pipeline.
     Full end-to-end generator pipeline using Tracery grammar generation.
     """
     features = build_feature_dict(image_input)
-    phrases = build_phrase_dict(features, seed=seed)
-    return render(phrases)
-
     return generate_blog_text_tracery(features)

@@ -99,14 +99,33 @@ def generate_blog():
             image.save(temp_file.name)
             temp_path = temp_file.name
 
-        # Generate blog using AI
-        blog_data = generate_blog_from_image(temp_path)
+        # Gather existing database posts as reference corpus for duplication checking
+        existing_posts = BlogPost.query.with_entities(
+            BlogPost.id, BlogPost.title, BlogPost.short_description, BlogPost.description
+        ).all()
+        extra_corpus = {
+            f"database_post_{p.id}": f"{p.title}\n{p.short_description}\n{p.description}"
+            for p in existing_posts
+        }
+        extra_corpus = {}
+        for p in existing_posts:
+            extra_corpus[f"db_post_{p.id}_full"] = f"{p.title}\n{p.short_description}\n{p.description}"
+            if p.title:
+                extra_corpus[f"db_post_{p.id}_title"] = p.title
+            if p.short_description:
+                extra_corpus[f"db_post_{p.id}_short"] = p.short_description
+            if p.description:
+                extra_corpus[f"db_post_{p.id}_desc"] = p.description
+
+        # Generate blog using AI and verify copyright / duplication
+        blog_data = generate_blog_from_image(temp_path, extra_corpus=extra_corpus)
 
         return jsonify(
             {
                 "title": blog_data.get("title", ""),
                 "short_description": blog_data.get("short_description", ""),
                 "description": blog_data.get("description", ""),
+                "copyright_check": blog_data.get("copyright_check", {}),
             }
         )
 

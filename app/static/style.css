@@ -23,6 +23,10 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.hidden-comment {
+    display: none !important;
+}
+
 /* Login Page Layout */
 .login-page-wrapper {
     min-height: 100vh;
@@ -449,6 +453,7 @@ tbody tr:hover {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -456,6 +461,7 @@ tbody tr:hover {
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -594,4 +600,52 @@ tbody tr:hover {
 
 .close-btn:hover {
     color: var(--error-color);
+}
+
+/* Copyright & Duplication Highlights */
+mark.copyright-highlight {
+    background: #fef08a !important;
+    color: #92400e !important;
+    padding: 0.15rem 0.35rem !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    border: 1px solid #fde047 !important;
+    display: inline;
+}
+
+.matched-phrase-pill {
+    display: inline-block;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin: 0.2rem 0.3rem 0.2rem 0;
+}
+
+.field-highlight-box {
+    background: #fffdf5;
+    border: 1px dashed #f59e0b;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #1f2937;
+    margin-top: 0.35rem;
+}
+
+.badge-duplicate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.725rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
