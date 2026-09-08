@@ -1,0 +1,17 @@
+1. Image processing -
+   pillow - use for loads, validates and read meta data
+   opencv - image analysis
+   numpy - array math for pillow and opencv operations
+   color thief- converts RGB values to human readable colors names
+   pytesseract and Tesseract OCR - reads text that physically appears inside the image (signs, labels and logos)
+2. Text Generation -
+   Tracery - Grammer based text generation
+   jinja2 - sentence template with words 
+3. Detect copyright and plagiarism-
+   **scikit-learn** is the library that actually does the detection. Specifically two functions from it
+   TfidfVectorizer`** — turns text into numeric vectors based on word importance
+   cosine_similarity`** — compares those vectors to produce a similarity score (0 to 1)
+   **Supporting libraries** (they don't detect anything themselves, they just feed data in or format results out):
+   difflib` (built into Python) — a second, simpler similarity score based on character overlap
+   re` (built into Python) — splits text into words/sentences and marks the matched parts for highlighting
+   sqlalchemy` + `pandas` — pull your existing posts out of your database so there's something to check against

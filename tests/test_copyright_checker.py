@@ -1,4 +1,3 @@
-"""Unit tests for local_copyright_checker module."""
 """Unit tests for db_copyright_checker module."""
 
 import unittest
@@ -53,12 +52,32 @@ class TestLocalCopyrightChecker(unittest.TestCase):
     def test_span_highlighting_html(self):
         text = "This landscape visual piece is centered around modern art."
         phrases = {"this landscape visual piece", "visual piece is centered"}
-        highlighted = highlight_matches(text, phrases, mode="html")
-        self.assertIn("<mark class=\"copyright-highlight\"", highlighted)
+        highlighted = highlight_matches(text, phrases, mode="html", highlight_type="copyright")
+        self.assertIn('<mark class="copyright-highlight"', highlighted)
+        self.assertIn("#fef08a", highlighted)
         self.assertIn("</mark>", highlighted)
-        # Verify no broken/nested tags
         self.assertEqual(highlighted.count("<mark"), 1)
         self.assertEqual(highlighted.count("</mark>"), 1)
+
+    def test_span_highlighting_plagiarism_html(self):
+        text = "This landscape visual piece is copied text."
+        phrases = {"this landscape visual piece"}
+        highlighted = highlight_matches(text, phrases, mode="html", highlight_type="plagiarism")
+        self.assertIn('<mark class="plagiarism-highlight"', highlighted)
+        self.assertIn("#fee2e2", highlighted)
+        self.assertIn("</mark>", highlighted)
+        self.assertEqual(highlighted.count("<mark"), 1)
+
+    def test_span_highlighting_dual_categories(self):
+        from db_copyright_checker import highlight_matches_by_category
+        text = "Original start. Copied external reference text here. Shared database duplicate content. End."
+        plag = {"copied external reference text"}
+        copyr = {"shared database duplicate content"}
+        highlighted = highlight_matches_by_category(text, plagiarism_phrases=plag, copyright_phrases=copyr, mode="html")
+        self.assertIn('class="plagiarism-highlight"', highlighted)
+        self.assertIn('class="copyright-highlight"', highlighted)
+        self.assertIn('#fee2e2', highlighted)
+        self.assertIn('#fef08a', highlighted)
 
     def test_span_highlighting_markdown(self):
         text = "This landscape visual piece is centered around modern art."
@@ -97,6 +116,21 @@ class TestLocalCopyrightChecker(unittest.TestCase):
         self.assertTrue(report["is_flagged"])
         self.assertIn("highlighted_fields", report)
         self.assertIn("<mark", report["highlighted_fields"]["description"])
+
+    def test_check_blog_draft_dual_plagiarism_and_copyright(self):
+        dual_corpus = {
+            "external_reference.txt": "This landscape visual piece is centered around a rich palette of coffee brown.",
+            "db_post_42": "The overall scene exhibits balanced illumination across the frame.",
+        }
+        title = "Dual Overlap Study"
+        short = "This landscape visual piece is centered around a rich palette of coffee brown."
+        desc = "The overall scene exhibits balanced illumination across the frame."
+        report = check_blog_draft_copyright(title, short, desc, extra_corpus=dual_corpus)
+        self.assertTrue(report["is_flagged"])
+        self.assertTrue(report["has_plagiarism"])
+        self.assertTrue(report["has_copyright"])
+        self.assertIn("plagiarism-highlight", report["highlighted_fields"]["short_description"])
+        self.assertIn("copyright-highlight", report["highlighted_fields"]["description"])
 
     def test_annotate_posts_with_copyright_info(self):
         p1 = DummyPost(

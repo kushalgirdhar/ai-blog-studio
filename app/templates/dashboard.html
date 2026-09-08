@@ -48,6 +48,19 @@
             gap: 0.25rem;
         }
 
+        .badge-plagiarism {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 99px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         mark.copyright-highlight {
             background: #fef08a !important;
             color: #854d0e !important;
@@ -57,10 +70,29 @@
             border: 1px solid #fde047 !important;
         }
 
-        .matched-phrase-pill {
+        mark.plagiarism-highlight {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 600 !important;
+            border: 1px solid #f87171 !important;
+        }
+
+        .matched-phrase-pill-copyright {
             background: #fef9c3;
             border: 1px solid #fef08a;
             color: #854d0e;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .matched-phrase-pill-plagiarism {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
             padding: 2px 8px;
             border-radius: 6px;
             font-size: 0.75rem;
@@ -160,7 +192,11 @@
                                 {% endif %}
                             </h3>
                             <div style="display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap;">
-                                {% if post.is_flagged %}
+                                {% if post.has_plagiarism %}
+                                <span class="badge-plagiarism" title="{{ post.plagiarism_phrases|length }} reference document match(es) detected">
+                                    <i class="ph ph-shield-warning"></i> Plagiarism Match
+                                </span>
+                                {% elif post.is_flagged or post.has_copyright %}
                                 <span class="badge-duplicate" title="{{ post.matched_phrases|length }} shared phrase(s) detected">
                                     <i class="ph ph-warning-circle"></i> Shared Content
                                 </span>
@@ -332,7 +368,7 @@
                         ">
                     </div>
 
-                    <!-- COPYRIGHT / DUPLICATION STATUS BANNER -->
+                    <!-- COPYRIGHT & PLAGIARISM STATUS BANNER -->
                     <div id="copyrightStatusBanner" style="
                         display:none;
                         padding:0.9rem 1.15rem;
@@ -348,21 +384,32 @@
                         </div>
                         <p id="copyrightStatusMessage" style="margin:0.5rem 0 0 0; font-size:0.85rem;"></p>
                         
-                        <!-- Matched Phrases Pills -->
-                        <div id="copyrightMatchedPillsWrapper" style="margin-top:0.75rem;">
-                            <strong style="font-size:0.775rem; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:0.25rem; opacity:0.85;">
-                                Matched Overlapping Phrases:
+                        <!-- Matched Plagiarism Pills -->
+                        <div id="plagiarismMatchedPillsWrapper" style="margin-top:0.75rem; display:none;">
+                            <strong style="font-size:0.775rem; color:#991b1b; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                                🔴 Reference Plagiarism Matches (Red Highlight):
+                            </strong>
+                            <div id="plagiarismMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
+                        </div>
+
+                        <!-- Matched Copyright / Duplication Pills -->
+                        <div id="copyrightMatchedPillsWrapper" style="margin-top:0.75rem; display:none;">
+                            <strong style="font-size:0.775rem; color:#854d0e; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:0.25rem; margin-bottom:0.25rem;">
+                                🟡 Database Duplication Matches (Yellow Highlight):
                             </strong>
                             <div id="copyrightMatchedPills" style="display:flex; flex-wrap:wrap; gap:0.35rem;"></div>
                         </div>
 
                         <!-- Highlighted Overlap Full Preview Box -->
-                        <div id="copyrightHighlightContainer" style="display:none; margin-top:0.85rem; padding:0.75rem 1rem; background:#fff; border-radius:6px; border:1px solid #fde047; box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                                <strong style="font-size:0.825rem; color:#b45309; display:flex; align-items:center; gap:0.3rem;">
-                                    <i class="ph ph-highlighter"></i> Highlighted Overlapping Draft:
+                        <div id="copyrightHighlightContainer" style="display:none; margin-top:0.85rem; padding:0.75rem 1rem; background:#fff; border-radius:6px; border:1px solid #e5e7eb; box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; flex-wrap:wrap; gap:0.25rem;">
+                                <strong style="font-size:0.825rem; color:#1f2937; display:flex; align-items:center; gap:0.3rem;">
+                                    <i class="ph ph-highlighter"></i> Highlighted Analysis Preview:
                                 </strong>
-                                <span style="font-size:0.75rem; color:#6b7280;">Yellow marks = matched text</span>
+                                <div style="display:flex; gap:0.6rem; font-size:0.725rem;">
+                                    <span style="color:#991b1b; font-weight:600;"><span style="display:inline-block; width:8px; height:8px; background:#fca5a5; border-radius:2px; margin-right:3px;"></span>Red = Plagiarism</span>
+                                    <span style="color:#854d0e; font-weight:600;"><span style="display:inline-block; width:8px; height:8px; background:#fde047; border-radius:2px; margin-right:3px;"></span>Yellow = Shared Content</span>
+                                </div>
                             </div>
                             <div id="copyrightHighlightedPreview" style="font-size:0.85rem; color:#1f2937; line-height:1.6; white-space:pre-wrap; max-height:160px; overflow-y:auto; padding-right:0.5rem;"></div>
                         </div>
@@ -498,63 +545,74 @@
         /* =========================
            HIGHLIGHTING HELPERS
         ========================= */
-        function highlightPhrasesInString(text, phrases) {
-            if (!text || !phrases || !phrases.length) return text;
+        function highlightPhrasesInString(text, copyrightPhrases = [], plagiarismPhrases = []) {
+            if (!text) return text;
 
-            const sorted = [...phrases]
-                .map(p => p.trim())
-                .filter(p => p.length >= 3)
-                .sort((a, b) => b.length - a.length);
+            const plagSet = new Set(plagiarismPhrases.map(p => p.trim().toLowerCase()).filter(p => p.length >= 3));
+            const copyrSet = new Set(copyrightPhrases.map(p => p.trim().toLowerCase()).filter(p => p.length >= 3 && !plagSet.has(p)));
 
-            if (!sorted.length) return text;
-
-            const spans = [];
+            const typedSpans = [];
             const lowerText = text.toLowerCase();
 
-            sorted.forEach(phrase => {
-                const lowerPhrase = phrase.toLowerCase();
-                let idx = lowerText.indexOf(lowerPhrase);
+            plagSet.forEach(phrase => {
+                let idx = lowerText.indexOf(phrase);
                 while (idx !== -1) {
-                    spans.push([idx, idx + lowerPhrase.length]);
-                    idx = lowerText.indexOf(lowerPhrase, idx + 1);
+                    typedSpans.push({ start: idx, end: idx + phrase.length, type: "plagiarism" });
+                    idx = lowerText.indexOf(phrase, idx + 1);
                 }
             });
 
-            if (!spans.length) return text;
+            copyrSet.forEach(phrase => {
+                let idx = lowerText.indexOf(phrase);
+                while (idx !== -1) {
+                    typedSpans.push({ start: idx, end: idx + phrase.length, type: "copyright" });
+                    idx = lowerText.indexOf(phrase, idx + 1);
+                }
+            });
 
-            spans.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+            if (!typedSpans.length) return text;
+
+            typedSpans.sort((a, b) => a.start - b.start || b.end - a.end || (a.type === "plagiarism" ? -1 : 1));
+
             const merged = [];
-            let [curStart, curEnd] = spans[0];
+            let cur = { ...typedSpans[0] };
 
-            for (let i = 1; i < spans.length; i++) {
-                const [s, e] = spans[i];
-                if (s <= curEnd) {
-                    curEnd = Math.max(curEnd, e);
+            for (let i = 1; i < typedSpans.length; i++) {
+                const next = typedSpans[i];
+                if (next.start <= cur.end) {
+                    cur.end = Math.max(cur.end, next.end);
+                    if (next.type === "plagiarism") cur.type = "plagiarism";
                 } else {
-                    merged.push([curStart, curEnd]);
-                    curStart = s;
-                    curEnd = e;
+                    merged.push(cur);
+                    cur = { ...next };
                 }
             }
-            merged.push([curStart, curEnd]);
+            merged.push(cur);
 
             let result = "";
             let lastIdx = 0;
-            merged.forEach(([s, e]) => {
-                result += text.slice(lastIdx, s);
-                result += `<mark class="copyright-highlight" style="background:#fef08a; color:#854d0e; padding:2px 5px; border-radius:4px; font-weight:600; border:1px solid #fde047;">${text.slice(s, e)}</mark>`;
-                lastIdx = e;
+            merged.forEach(span => {
+                result += text.slice(lastIdx, span.start);
+                const markClass = span.type === "plagiarism" ? "plagiarism-highlight" : "copyright-highlight";
+                const markStyle = span.type === "plagiarism"
+                    ? "background:#fee2e2; color:#991b1b; padding:2px 5px; border-radius:4px; font-weight:600; border:1px solid #f87171;"
+                    : "background:#fef08a; color:#854d0e; padding:2px 5px; border-radius:4px; font-weight:600; border:1px solid #fde047;";
+                result += `<mark class="${markClass}" style="${markStyle}">${text.slice(span.start, span.end)}</mark>`;
+                lastIdx = span.end;
             });
             result += text.slice(lastIdx);
             return result;
         }
 
-        function renderDuplicationResults(isFlagged, maxSim, matchedPhrases, summaryMsg) {
+        function renderDuplicationResults(isFlagged, maxSim, matchedPhrases, summaryMsg, plagiarismPhrases = [], copyrightPhrases = []) {
             const copyrightBanner = document.getElementById("copyrightStatusBanner");
             const copyrightTitle = document.getElementById("copyrightStatusTitle");
             const copyrightBadge = document.getElementById("copyrightSimilarityBadge");
             const copyrightMsg = document.getElementById("copyrightStatusMessage");
-            const copyrightPills = document.getElementById("copyrightMatchedPills");
+            const plagWrapper = document.getElementById("plagiarismMatchedPillsWrapper");
+            const plagPills = document.getElementById("plagiarismMatchedPills");
+            const copyrWrapper = document.getElementById("copyrightMatchedPillsWrapper");
+            const copyrPills = document.getElementById("copyrightMatchedPills");
             const highlightContainer = document.getElementById("copyrightHighlightContainer");
             const highlightPreview = document.getElementById("copyrightHighlightedPreview");
 
@@ -562,32 +620,75 @@
 
             copyrightBanner.style.display = "block";
 
-            // Render matched pills
-            if (copyrightPills) {
-                copyrightPills.innerHTML = "";
-                if (matchedPhrases && matchedPhrases.length) {
-                    matchedPhrases.slice(0, 12).forEach(phrase => {
+            // Render Plagiarism Pills (Red)
+            if (plagPills && plagWrapper) {
+                plagPills.innerHTML = "";
+                if (plagiarismPhrases && plagiarismPhrases.length) {
+                    plagWrapper.style.display = "block";
+                    plagiarismPhrases.slice(0, 10).forEach(phrase => {
                         const pill = document.createElement("span");
-                        pill.className = "matched-phrase-pill";
+                        pill.className = "matched-phrase-pill-plagiarism";
                         pill.textContent = `"${phrase}"`;
-                        copyrightPills.appendChild(pill);
+                        plagPills.appendChild(pill);
                     });
+                } else {
+                    plagWrapper.style.display = "none";
                 }
             }
 
-            if (isFlagged && matchedPhrases && matchedPhrases.length) {
-                copyrightBanner.style.background = "#fffbeb";
-                copyrightBanner.style.border = "1px solid #fde68a";
-                copyrightBanner.style.color = "#92400e";
+            // Render Copyright / Duplication Pills (Yellow)
+            if (copyrPills && copyrWrapper) {
+                copyrPills.innerHTML = "";
+                if (copyrightPhrases && copyrightPhrases.length) {
+                    copyrWrapper.style.display = "block";
+                    copyrightPhrases.slice(0, 10).forEach(phrase => {
+                        const pill = document.createElement("span");
+                        pill.className = "matched-phrase-pill-copyright";
+                        pill.textContent = `"${phrase}"`;
+                        copyrPills.appendChild(pill);
+                    });
+                } else {
+                    copyrWrapper.style.display = "none";
+                }
+            }
 
-                if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-warning" style="margin-right:4px;"></i> Duplication Warning: Shared Phrases Detected`;
-                if (copyrightBadge) {
-                    copyrightBadge.textContent = `${maxSim}% match`;
-                    copyrightBadge.style.background = "#fef3c7";
-                    copyrightBadge.style.color = "#b45309";
+            if (isFlagged && (plagiarismPhrases.length > 0 || copyrightPhrases.length > 0 || matchedPhrases.length > 0)) {
+                if (plagiarismPhrases.length > 0 && copyrightPhrases.length > 0) {
+                    copyrightBanner.style.background = "#fff8f1";
+                    copyrightBanner.style.border = "1px solid #fed7aa";
+                    copyrightBanner.style.color = "#7c2d12";
+
+                    if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism (Red) & Copyright (Yellow) Overlap Detected`;
+                    if (copyrightBadge) {
+                        copyrightBadge.textContent = `${maxSim}% match`;
+                        copyrightBadge.style.background = "#ffedd5";
+                        copyrightBadge.style.color = "#c2410c";
+                    }
+                } else if (plagiarismPhrases.length > 0) {
+                    copyrightBanner.style.background = "#fef2f2";
+                    copyrightBanner.style.border = "1px solid #fecaca";
+                    copyrightBanner.style.color = "#991b1b";
+
+                    if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-shield-warning" style="margin-right:4px;"></i> Plagiarism Warning: Reference Matches Detected`;
+                    if (copyrightBadge) {
+                        copyrightBadge.textContent = `${maxSim}% match`;
+                        copyrightBadge.style.background = "#fee2e2";
+                        copyrightBadge.style.color = "#991b1b";
+                    }
+                } else {
+                    copyrightBanner.style.background = "#fffbeb";
+                    copyrightBanner.style.border = "1px solid #fde68a";
+                    copyrightBanner.style.color = "#92400e";
+
+                    if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-warning" style="margin-right:4px;"></i> Copyright / Duplication: Database Overlap Detected`;
+                    if (copyrightBadge) {
+                        copyrightBadge.textContent = `${maxSim}% match`;
+                        copyrightBadge.style.background = "#fef3c7";
+                        copyrightBadge.style.color = "#b45309";
+                    }
                 }
 
-                if (copyrightMsg) copyrightMsg.textContent = summaryMsg || "Some phrases match existing blog posts or reference docs. Overlapping phrases are highlighted below:";
+                if (copyrightMsg) copyrightMsg.textContent = summaryMsg || "Overlapping phrases were identified. Plagiarism (Red) and Shared Content (Yellow) are highlighted below:";
 
                 if (highlightContainer && highlightPreview) {
                     highlightContainer.style.display = "block";
@@ -595,14 +696,14 @@
                     const s = document.getElementById("generatedShortDescription")?.value || "";
                     const d = document.getElementById("generatedDescription")?.value || "";
                     const combined = `Title: ${t}\n\nShort: ${s}\n\nDescription: ${d}`;
-                    highlightPreview.innerHTML = highlightPhrasesInString(combined, matchedPhrases);
+                    highlightPreview.innerHTML = highlightPhrasesInString(combined, copyrightPhrases, plagiarismPhrases);
                 }
             } else {
                 copyrightBanner.style.background = "#f0fdf4";
                 copyrightBanner.style.border = "1px solid #bbf7d0";
                 copyrightBanner.style.color = "#166534";
 
-                if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-shield-check" style="margin-right:4px;"></i> Copyright Check Passed: 100% Unique`;
+                if (copyrightTitle) copyrightTitle.innerHTML = `<i class="ph ph-shield-check" style="margin-right:4px;"></i> Copyright & Plagiarism Check Passed: 100% Unique`;
                 if (copyrightBadge) {
                     copyrightBadge.textContent = "Clean";
                     copyrightBadge.style.background = "#dcfce7";
@@ -618,10 +719,47 @@
         }
 
         function updateLiveHighlights() {
-            const phrases = Array.from(window.activeMatchedPhrases || []);
             const titleInput = document.getElementById("generatedTitle");
             const shortInput = document.getElementById("generatedShortDescription");
             const descInput = document.getElementById("generatedDescription");
+
+            const plagPhrasesSet = new Set(window.activePlagiarismPhrases || []);
+            const copyrPhrasesSet = new Set(window.activeCopyrightPhrases || []);
+
+            // Dynamically compare current input content against all existing post cards on the dashboard
+            const feedTexts = [];
+            document.querySelectorAll(".post-title, .post-desc, .post-full-desc").forEach(el => {
+                const t = el.textContent.replace(/^(Short|Full):\s*/i, "").trim();
+                if (t) feedTexts.push(t);
+            });
+
+            function getTokens(str) {
+                return (str.toLowerCase().match(/\b\w+\b/g) || []);
+            }
+            function getShingles(tokens, n = 3) {
+                const set = new Set();
+                for (let i = 0; i <= tokens.length - n; i++) {
+                    set.add(tokens.slice(i, i + n).join(" "));
+                }
+                return set;
+            }
+
+            const currentText = `${titleInput?.value || ""} ${shortInput?.value || ""} ${descInput?.value || ""}`;
+            const currentTokens = getTokens(currentText);
+            const currentShingles = getShingles(currentTokens, 3);
+
+            feedTexts.forEach(ft => {
+                const ftTokens = getTokens(ft);
+                const ftShingles = getShingles(ftTokens, 3);
+                currentShingles.forEach(sh => {
+                    if (ftShingles.has(sh) && !plagPhrasesSet.has(sh)) {
+                        copyrPhrasesSet.add(sh);
+                    }
+                });
+            });
+
+            const plagPhrases = Array.from(plagPhrasesSet);
+            const copyrPhrases = Array.from(copyrPhrasesSet);
 
             const titleHighlight = document.getElementById("highlightedTitlePreview");
             const shortHighlight = document.getElementById("highlightedShortPreview");
@@ -631,7 +769,7 @@
             const shortCount = document.getElementById("shortMatchCount");
             const descCount = document.getElementById("descMatchCount");
 
-            if (!phrases || !phrases.length) {
+            if (!plagPhrases.length && !copyrPhrases.length) {
                 if (titleHighlight) titleHighlight.style.display = "none";
                 if (shortHighlight) shortHighlight.style.display = "none";
                 if (descHighlight) descHighlight.style.display = "none";
@@ -643,7 +781,7 @@
 
             // Title
             if (titleInput && titleHighlight) {
-                const hTitle = highlightPhrasesInString(titleInput.value, phrases);
+                const hTitle = highlightPhrasesInString(titleInput.value, copyrPhrases, plagPhrases);
                 if (hTitle.includes("<mark")) {
                     titleHighlight.style.display = "block";
                     titleHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hTitle}`;
@@ -656,7 +794,7 @@
 
             // Short Description
             if (shortInput && shortHighlight) {
-                const hShort = highlightPhrasesInString(shortInput.value, phrases);
+                const hShort = highlightPhrasesInString(shortInput.value, copyrPhrases, plagPhrases);
                 if (hShort.includes("<mark")) {
                     shortHighlight.style.display = "block";
                     shortHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hShort}`;
@@ -669,7 +807,7 @@
 
             // Full Description
             if (descInput && descHighlight) {
-                const hDesc = highlightPhrasesInString(descInput.value, phrases);
+                const hDesc = highlightPhrasesInString(descInput.value, copyrPhrases, plagPhrases);
                 if (hDesc.includes("<mark")) {
                     descHighlight.style.display = "block";
                     descHighlight.innerHTML = `<small style="color:#b45309; font-weight:600; display:block; margin-bottom:2px;">⚠️ Highlighted Match Preview:</small>${hDesc}`;
@@ -682,12 +820,48 @@
 
             // Update full preview container
             const highlightPreview = document.getElementById("copyrightHighlightedPreview");
-            if (highlightPreview && phrases.length) {
+            if (highlightPreview && (plagPhrases.length || copyrPhrases.length)) {
                 const t = titleInput?.value || "";
                 const s = shortInput?.value || "";
                 const d = descInput?.value || "";
                 const combined = `Title: ${t}\n\nShort: ${s}\n\nDescription: ${d}`;
-                highlightPreview.innerHTML = highlightPhrasesInString(combined, phrases);
+                highlightPreview.innerHTML = highlightPhrasesInString(combined, copyrPhrases, plagPhrases);
+            }
+
+            // Update pill containers dynamically
+            const plagWrapper = document.getElementById("plagiarismMatchedPillsWrapper");
+            const plagPills = document.getElementById("plagiarismMatchedPills");
+            const copyrWrapper = document.getElementById("copyrightMatchedPillsWrapper");
+            const copyrPills = document.getElementById("copyrightMatchedPills");
+
+            if (plagPills && plagWrapper) {
+                plagPills.innerHTML = "";
+                if (plagPhrases.length) {
+                    plagWrapper.style.display = "block";
+                    plagPhrases.slice(0, 10).forEach(phrase => {
+                        const pill = document.createElement("span");
+                        pill.className = "matched-phrase-pill-plagiarism";
+                        pill.textContent = `"${phrase}"`;
+                        plagPills.appendChild(pill);
+                    });
+                } else {
+                    plagWrapper.style.display = "none";
+                }
+            }
+
+            if (copyrPills && copyrWrapper) {
+                copyrPills.innerHTML = "";
+                if (copyrPhrases.length) {
+                    copyrWrapper.style.display = "block";
+                    copyrPhrases.slice(0, 10).forEach(phrase => {
+                        const pill = document.createElement("span");
+                        pill.className = "matched-phrase-pill-copyright";
+                        pill.textContent = `"${phrase}"`;
+                        copyrPills.appendChild(pill);
+                    });
+                } else {
+                    copyrWrapper.style.display = "none";
+                }
             }
         }
 
@@ -753,9 +927,10 @@
                 if (generatedDescInput) generatedDescInput.value = data.description || "";
 
                 /* Store matched phrases globally for live highlighting */
-                window.activeMatchedPhrases = new Set(data.copyright_check?.matched_phrases || []);
+                window.activePlagiarismPhrases = new Set(data.copyright_check?.plagiarism_phrases || []);
+                window.activeCopyrightPhrases = new Set(data.copyright_check?.copyright_phrases || []);
 
-                // Also harvest phrases from existing feed cards on page
+                // Also harvest phrases from existing feed cards on page (classified as internal DB copyright)
                 const feedTexts = [];
                 document.querySelectorAll(".post-title, .post-desc, .post-full-desc").forEach(el => {
                     const t = el.textContent.replace(/^(Short|Full):\s*/i, "").trim();
@@ -780,19 +955,27 @@
                     const ftTokens = getTokens(ft);
                     const ftShingles = getShingles(ftTokens, 3);
                     draftShingles.forEach(sh => {
-                        if (ftShingles.has(sh)) {
-                            window.activeMatchedPhrases.add(sh);
+                        if (ftShingles.has(sh) && !window.activePlagiarismPhrases.has(sh)) {
+                            window.activeCopyrightPhrases.add(sh);
                         }
                     });
                 });
 
-                const isFlagged = (window.activeMatchedPhrases.size > 0) || (data.copyright_check?.is_flagged);
+                const allMatched = new Set([...window.activePlagiarismPhrases, ...window.activeCopyrightPhrases]);
+                const isFlagged = (allMatched.size > 0) || (data.copyright_check?.is_flagged);
                 const maxSim = Math.max(
                     Math.round((data.copyright_check?.max_similarity || 0) * 100),
-                    window.activeMatchedPhrases.size > 0 ? Math.min(95, window.activeMatchedPhrases.size * 8 + 15) : 0
+                    allMatched.size > 0 ? Math.min(95, allMatched.size * 8 + 15) : 0
                 );
 
-                renderDuplicationResults(isFlagged, maxSim, Array.from(window.activeMatchedPhrases), data.copyright_check?.summary_message);
+                renderDuplicationResults(
+                    isFlagged,
+                    maxSim,
+                    Array.from(allMatched),
+                    data.copyright_check?.summary_message,
+                    Array.from(window.activePlagiarismPhrases),
+                    Array.from(window.activeCopyrightPhrases)
+                );
 
             } catch (error) {
                 console.error(error);
