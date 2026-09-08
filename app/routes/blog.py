@@ -119,41 +119,6 @@ def generate_blog():
         # Delete temporary image after AI processing
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
-    image = request.files.get("photo")
-
-    if not image:
-        return jsonify({"error": "Please upload an image."}), 400
-
-    try:
-        # Temporarily save the uploaded image
-        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "blog")
-
-        os.makedirs(upload_folder, exist_ok=True)
-
-        original_filename = secure_filename(image.filename)
-        extension = os.path.splitext(original_filename)[1].lower()
-
-        unique_filename = f"{uuid4().hex}{extension}"
-
-        image_path = os.path.join(upload_folder, unique_filename)
-
-        image.save(image_path)
-
-        # Generate blog using AI
-        blog_data = generate_blog_from_image(image_path)
-
-        return jsonify(
-            {
-                "title": blog_data.get("title", ""),
-                "short_description": blog_data.get("short_description", ""),
-                "description": blog_data.get("description", ""),
-            }
-        )
-
-    except Exception as e:
-        current_app.logger.exception("AI blog generation failed")
-
-        return jsonify({"error": "Unable to generate blog at this time."}), 500
 
 
 @blog.route("/blog/<int:post_id>/comment", methods=["POST"])

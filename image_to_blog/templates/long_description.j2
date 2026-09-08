@@ -1,0 +1,8 @@
+This {{ orientation }} visual piece is centered around a rich palette of {{ palette_list }}. The overall scene exhibits {{ brightness_desc }}, complemented by {{ contrast_desc }} and {{ warmth_desc }} that establish a {{ mood }} atmosphere across the frame.
+
+From a compositional standpoint, visual focus is {{ focal_desc }}, creating {{ busyness_desc }}. The image displays {{ sharpness_desc }}, giving clarity to contours and textural elements throughout the viewing area.
+{% if has_ocr or has_exif %}
+
+{% if has_ocr %}{{ ocr_sentence }} {% endif %}{% if has_exif %}{{ exif_sentence }}{% endif %}
+{% endif %}
+
