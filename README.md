@@ -1,98 +1,143 @@
 # AI Blog Studio 🚀
 
-A production-ready Flask web application combining user authentication, PostgreSQL database management, interactive blogging, and an offline, rule-based **Image-to-Blog Text Generator** powered by classical Computer Vision (OpenCV, Pillow, NumPy, Tesseract OCR, and Jinja2 templates).
+A production-ready Flask web application combining user authentication, PostgreSQL database management, interactive blogging, an offline **Image-to-Blog Text Generator**, and an automated **Copyright & Plagiarism Detection System**.
 
-Authenticated authors can upload images to automatically generate well-crafted blog drafts (title, short description, and full description) derived from measurable visual features — zero external API keys, zero cloud latency, and 100% deterministic local execution.
+Authenticated authors can upload images to automatically generate rich, context-aware blog drafts (title, short description, and full narrative) derived from visual features and grammar templates — complete with real-time duplication and plagiarism analysis against existing database posts and reference corpora.
 
 ---
 
-## 🌟 Key Features
+## 👨‍💻 Author & Contact
 
-### 📸 Rule-Based Image-to-Blog AI Engine (`image_to_blog`)
-- **Dominant Palette Extraction:** K-Means clustering (`cv2.kmeans`) determines dominant colors and matches them to perceptual human color names.
-- **Lighting & Temperature Analysis:** Computes mean luminance, tonal contrast, and warm/cool color ratios.
-- **Texture & Edge Complexity:** Evaluates sharpness using Laplacian variance and visual density via Canny edge detection.
-- **Composition & Rule of Thirds:** Analyzes aspect ratios (landscape/portrait/square) and 3x3 grid edge distribution to identify visual focal points.
-- **EXIF Metadata Extraction:** Reads camera make, model, focal length, exposure time, f-number, and ISO if available.
-- **Embedded Text OCR:** Detects and transcribes readable text using Tesseract OCR.
-- **Dynamic Phrasing & Jinja2 Templates:** Synthesizes extracted metrics into natural, varied descriptions and structured drafts.
+- **Author:** Kushal Girdhar
+- **GitHub:** [@kushalgirdhar](https://github.com/kushalgirdhar)
+- **Repository:** [https://github.com/kushalgirdhar/ai-blog-studio](https://github.com/kushalgirdhar/ai-blog-studio)
+
+---
+
+## 🧠 AI & Technology Stack Breakdown
+
+The application uses an offline, privacy-first, zero-cloud-cost AI architecture composed of three dedicated subsystems:
+
+### 1. Image Processing & Computer Vision
+Extracts measurable visual features, perceptual metrics, color palettes, and embedded text directly from uploaded images.
+
+- **`pillow` (`PIL`)** — Loads, validates image integrity, checks dimensions, converts color spaces (RGB/RGBA/Grayscale), and parses EXIF camera metadata (camera model, exposure, ISO, focal length).
+- **`opencv` (`cv2`)** — Advanced image analysis including Laplacian variance (sharpness), Canny edge detection (visual density & texture), K-Means color clustering, and HSV channel thresholding for scene classification.
+- **`numpy`** — Fast array math, matrix slicing, and vector transformations supporting Pillow and OpenCV operations.
+- **`color thief`** — Converts RGB values to human-readable color names and extracts dominant color palettes.
+- **`pytesseract` & `Tesseract OCR`** — Reads text that physically appears inside the image (such as signs, labels, and logos).
+
+---
+
+### 2. Text Generation & Storytelling
+Synthesizes visual features into rich, natural narrative stories with high combinatorial variety.
+
+- **`Tracery`** — Grammar-based generative text engine producing over 1,000,000+ unique, context-specific narrative combinations across diverse scene categories (rainforest waterfalls, futuristic tech/holograms, coastal seascapes, urban architecture, sunsets, and mountain vistas).
+- **`jinja2`** — Sentence templates with dynamic word slots and structured formatting for blog titles, short summaries, and multi-paragraph drafts.
+
+---
+
+### 3. Copyright & Plagiarism Detection
+Compares generated and edited blog drafts against the live database of published posts and local reference archives.
+
+- **`scikit-learn`** — The core machine learning library that actually does the detection. Specifically two functions from it:
+  - **`TfidfVectorizer`** — Turns text into numeric vectors based on word frequency and relative importance.
+  - **`cosine_similarity`** — Compares those vectors to produce a similarity score (0 to 1).
+- **Supporting Libraries** (they don't detect anything themselves, they just feed data in or format results out):
+  - **`difflib`** *(built into Python)* — A second, simpler similarity score based on character overlap.
+  - **`re`** *(built into Python)* — Splits text into words/sentences and marks the matched parts for dual-category visual highlighting:
+    - 🔴 **Plagiarism (External Source):** Highlighted in red with reference citation.
+    - 🟡 **Copyright / Database Duplicate (Shared Post Content):** Highlighted in yellow with clamped tags and line count triggers.
+  - **`sqlalchemy` + `pandas`** — Pull your existing posts out of your database so there's something to check against.
+
+---
+
+## 🌟 Key Application Features
+
+### 📸 Semantic Image-to-Blog AI Engine
+- **Perceptual Scene Analysis:** Analyzes vegetation density, neon luminescences, blue/green ratios, and vertical flow vectors to categorize images.
+- **Dominant Palette & Lighting:** K-Means clustering identifies dominant colors; calculates contrast and warm/cool balance.
+- **Texture, Composition & EXIF:** Evaluates Rule of Thirds focal points, edge density, and camera metadata.
+- **Live Re-Generation:** Single-click **"Regenerate AI Content"** button on both the Create and Edit post pages to generate clean, unique phrasing.
+
+### 🛡️ Dual-Category Copyright & Plagiarism Shield
+- **Dual Visual Highlighting:** Real-time span highlights distinguishing external plagiarism (Red) from internal database duplication (Yellow).
+- **Expandable Highlights:** Long highlight spans exceeding 3 lines feature a clean, collapsible **"More / Less"** toggle button.
+- **Dashboard Feed Annotations:** Public discovery feed and author dashboard automatically scan and annotate post cards.
 
 ### ✍️ Blog & Content Management
-- Create, preview, edit, and publish rich blog posts.
-- **Draft Assistance:** AI-generated blog drafts populate the form for author review and editing before publishing.
-- **Visibility Controls:** Set posts to `Public`, `Login Only`, or `Private`.
-- **Media Handling:** Secure upload pipeline with UUID renaming, file type validation, and responsive container rendering.
+- Full CRUD functionality: Create, preview, edit, and publish blog articles.
+- **Visibility Settings:** Control post exposure with `Public`, `Login Only`, or `Private` permissions.
+- **Media Upload Pipeline:** Secure upload handling with UUID renaming, MIME validation, and responsive display.
 
-### 🔐 Authentication & User Accounts
-- Secure registration and login with bcrypt password hashing.
-- Session-based authentication with `Flask-Login` and login history tracking.
-- Author dashboard displaying personal posts, total engagement, and quick-action modals.
-
-### 💬 Community & Comments
-- Interactive commenting system with role-based permissions.
-- Public posts support anonymous or logged-in discussions; private posts restrict access to post authors.
-
-### 🛡️ Security & Reliability
-- Strict CSRF protection with `Flask-WTF`.
-- Secure file upload handling (`werkzeug.utils.secure_filename` + UUID hashing).
-- SQL injection prevention via SQLAlchemy ORM parameterized queries.
+### 🔐 Security & User Management
+- Session-based authentication using `Flask-Login` and `bcrypt` password hashing.
+- CSRF protection enabled across all forms via `Flask-WTF`.
+- Parameterized database operations through SQLAlchemy ORM to prevent SQL injection.
+- Role-based commenting system with fine-grained access control.
 
 ---
 
-## 🏗️ Architecture & Project Structure
+## 🏗️ Architecture & Directory Structure
 
 ```text
 ai-blog-studio/
 ├── app/
-│   ├── models/                 # SQLAlchemy database models
-│   │   ├── blog.py             # BlogPost schema
-│   │   ├── comment.py          # Comment schema
-│   │   ├── login_history.py    # Authentication log schema
-│   │   └── user.py             # User account schema
-│   ├── routes/                 # Flask Blueprints
-│   │   ├── auth.py             # Login, registration, logout
-│   │   ├── blog.py             # Post creation, editing, AI generate endpoint, comments
-│   │   └── main.py             # Home page, dashboard, profile
+│   ├── models/                     # SQLAlchemy database models
+│   │   ├── blog.py                 # BlogPost model
+│   │   ├── comment.py              # Comment model
+│   │   ├── login_history.py        # Authentication log model
+│   │   └── user.py                 # User account model
+│   ├── routes/                     # Flask Blueprints
+│   │   ├── auth.py                 # Authentication routes (login, register, logout)
+│   │   ├── blog.py                 # Blog CRUD, AI generation, re-generation, comments
+│   │   └── main.py                 # Home feed, dashboard, profile
 │   ├── services/
-│   │   └── ai_service.py       # Integration service calling image_to_blog engine
+│   │   └── ai_service.py           # Glue layer connecting Flask to image_to_blog engine
 │   ├── static/
-│   │   ├── style.css           # Custom styling and responsive design
-│   │   └── uploads/blog/       # Uploaded post images
-│   ├── templates/              # Jinja2 HTML templates
-│   │   ├── auth/               # Login & Register views
-│   │   ├── blog/               # Blog creation and view templates
-│   │   ├── dashboard.html      # User control panel
-│   │   └── home.html           # Public discovery feed
-│   ├── extensions.py           # Database & LoginManager instances
-│   ├── forms.py                # WTForms schemas with CSRF validation
-│   └── __init__.py             # Flask application factory
+│   │   ├── style.css               # Application styles and highlight badges
+│   │   └── uploads/blog/           # Uploaded blog images
+│   ├── templates/                  # Jinja2 HTML templates
+│   │   ├── auth/                   # Login & Register views
+│   │   ├── blog/                   # Blog creation, edit, and view templates
+│   │   ├── dashboard.html          # Author management dashboard
+│   │   └── home.html               # Public feed
+│   ├── extensions.py               # Database and LoginManager instances
+│   ├── forms.py                    # WTForms schemas
+│   └── __init__.py                 # Flask application factory
 │
-├── image_to_blog/              # Standalone Image-to-Blog CV Engine
-│   ├── __init__.py             # Public module export
-│   ├── api.py                  # Single public entrypoint: generate_blog_text()
-│   ├── config.py               # Color palettes, threshold ranges, phrase banks
-│   ├── ingestion.py            # Image loader, format normalizer & corruption validator
-│   ├── features/               # Feature extractors
-│   │   ├── color.py            # K-Means dominant colors & Euclidean naming
-│   │   ├── light.py            # Mean brightness, contrast std dev, warmth ratio
-│   │   ├── texture.py          # Laplacian sharpness & Canny edge density
-│   │   ├── composition.py      # Orientation & 3x3 focal region detector
-│   │   ├── metadata.py         # EXIF camera metadata parser
-│   │   └── text_ocr.py         # Tesseract OCR reader & text cleaner
-│   ├── phrasing.py             # Feature-to-phrase mapping & mood synthesis
-│   ├── templates/              # Jinja2 text templates
-│   │   ├── title.j2            # Title template
-│   │   ├── short_description.j2 # Summary template
-│   │   └── long_description.j2  # Multi-sentence detailed body template
-│   └── generator.py            # End-to-end pipeline orchestrator
+├── db_copyright_checker.py         # TF-IDF & Cosine Similarity Copyright/Plagiarism Engine
+├── reference_docs/                 # Local reference archives for plagiarism scanning
+│   ├── internal_copyright_archive.txt
+│   └── sample_article.txt
 │
-├── migrations/                 # Alembic database migration scripts
-├── tests/                      # Automated unit and integration test suite
-│   └── test_image_to_blog.py   # Test suite for CV extractors and pipeline
-├── config.py                   # Application environment configuration
-├── requirements.txt            # Python dependencies
-├── run.py                      # Application entrypoint
-└── README.md
+├── image_to_blog/                  # Standalone Computer Vision & Text Generation Engine
+│   ├── __init__.py                 # Public module exports
+│   ├── api.py                      # Public entrypoint: generate_blog_text()
+│   ├── config.py                   # Color names, thresholds, grammar rules
+│   ├── ingestion.py                # Image validator, normalizer & EXIF loader
+│   ├── tracery_generator.py        # Combinatorial grammar narrative generator
+│   ├── phrasing.py                 # Feature-to-phrase mapping
+│   ├── features/                   # Vision feature extractors
+│   │   ├── color.py                # K-Means dominant color clustering
+│   │   ├── composition.py          # Rule of Thirds & focal point detector
+│   │   ├── light.py                # Brightness, contrast & color temperature
+│   │   ├── metadata.py             # EXIF parser
+│   │   ├── scene_analyzer.py       # Semantic scene classifier
+│   │   ├── text_ocr.py             # Tesseract OCR extraction
+│   │   └── texture.py              # Laplacian sharpness & Canny edge density
+│   ├── templates/                  # Jinja2 text templates
+│   └── generator.py                # Pipeline orchestrator
+│
+├── migrations/                     # Alembic database migration scripts
+├── tests/                          # Automated unit and integration test suite
+│   ├── test_blog_edit.py           # Edit and re-generation route test cases
+│   ├── test_copyright_checker.py   # TF-IDF, shingling, and highlight test cases
+│   └── test_image_to_blog.py       # Computer vision pipeline test cases
+├── config.py                       # Application configuration
+├── requirements.txt                # Python dependencies
+├── run.py                          # Application entry point
+└── README.md                       # Project documentation
 ```
 
 ---
@@ -100,8 +145,8 @@ ai-blog-studio/
 ## ⚙️ Prerequisites
 
 - **Python:** 3.10+ (tested on Python 3.12 & 3.14)
-- **PostgreSQL:** 14+ running locally or remotely
-- **Tesseract OCR:** System binary required for text detection
+- **PostgreSQL:** 14+ (or SQLite for development)
+- **Tesseract OCR:** System binary required for image text detection
   - **Ubuntu/Debian:** `sudo apt update && sudo apt install -y tesseract-ocr`
   - **macOS (Homebrew):** `brew install tesseract`
   - **Windows:** Download installer from [UB-Mannheim Tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
@@ -112,11 +157,11 @@ ai-blog-studio/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/ai-blog-studio.git
+git clone https://github.com/kushalgirdhar/ai-blog-studio.git
 cd ai-blog-studio
 ```
 
-### 2. Create and Activate Virtual Environment
+### 2. Create and Activate a Virtual Environment
 ```bash
 python3 -m venv myenv
 source myenv/bin/activate  # On Windows: myenv\Scripts\activate
@@ -129,7 +174,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
-Create a `.env` file in the root directory:
+Create a `.env` file in the project root:
 ```env
 FLASK_APP=run.py
 FLASK_ENV=development
@@ -142,20 +187,20 @@ DATABASE_URL=postgresql://username:password@localhost:5432/blog_db
 flask db upgrade
 ```
 
-### 6. Run the Development Server
+### 6. Run the Application
 ```bash
 python run.py
 ```
-Visit `http://127.0.0.1:5000` in your web browser.
+Open your browser and navigate to `http://127.0.0.1:5000`.
 
 ---
 
 ## 🧪 Running Automated Tests
 
-Run the comprehensive test suite verifying ingestion, color clustering, lighting, composition, OCR, and template generation:
+Run the complete test suite covering the computer vision pipeline, copyright detection, and blog editing workflows:
 
 ```bash
-python -m unittest tests/test_image_to_blog.py
+python -m unittest discover -s tests -v
 ```
 
 ---
@@ -163,7 +208,7 @@ python -m unittest tests/test_image_to_blog.py
 ## 🌐 Production Deployment
 
 ### Gunicorn WSGI Server
-Run behind Gunicorn:
+Run the production server with multiple worker processes:
 ```bash
 gunicorn --workers 4 --bind 127.0.0.1:8000 "run:app"
 ```
@@ -184,13 +229,6 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 ```
-
----
-
-## 📌 Technical Notes & Limitations
-
-- **Visual Properties Descriptor:** The `image_to_blog` generator describes measurable visual properties (colors, lighting, texture, composition, orientation, and embedded text). It does not use heavy deep learning models or perform semantic object classification (e.g. identifying dog breeds or specific landmarks).
-- **Human-in-the-Loop:** AI-generated outputs serve as starting drafts. Authors always retain full control to edit, refine, or rewrite before saving.
 
 ---
 
